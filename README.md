@@ -1,9 +1,10 @@
-My own place to keep my UCN work in general.
+A place to keep my general UCN work.
 
-DAQ Scripts
+## COMSOL
+My comsol work, although most files are really too big for github.
 
+## PENTrackAnalysis
+Working with output files from PENTrack.
 
-PENTrack Output Analysis
-
-
-again
+## Random
+Just a folder for random things that don't belong other places
