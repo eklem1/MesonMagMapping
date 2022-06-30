@@ -171,6 +171,50 @@ def getColor(geo1):
         print(geo1)
         
     return color, label
+
+'''
+Here we have the 3D UCN plotting, with a colorbar axis for a variable input of 
+the user's choice.
+'''
+def plot3D_varColor(x, y, z, var, t=None, startPlot=True, endPlot=True, label="", \
+                    figVals=None, ls="None", text_times=False, size=(8,8)):
+    if startPlot:
+        fig = plt.figure(figsize=size)
+        ax1 = fig.add_subplot(1,1,1, projection='3d')
+        ax1.set_xlim3d(-5, 7)
+        ax1.set_ylim3d(-2, 0)
+        ax1.set_zlim3d(-0.6, 0.5)
+        ax1.set_xlabel('x')
+        ax1.set_ylabel('y')
+        ax1.set_zlabel('z')
+        
+    else:
+        #unpack the array that holds all the fig axes
+        fig, ax1 = figVals
+           
+    #for connections between points if wanted
+    ax1.plot3D(x, y, z, linestyle=ls, marker='') 
+    #for different colors of each point
+    p = ax1.scatter(x, y, z, c=var, cmap=plt.cm.magma, alpha=0.7)
+    
+    if text_times:
+        for i in range(len(x)): #plot each point's time as text above
+            ax1.text(x[i],y[i],z[i],  '%s' % (str(t[i])), size=15, zorder=1, color='k') 
+    
+    #if it's the end of the plot, call the legend and show it
+    if endPlot:
+        #removes repeated labels so this doesn't look silly
+        handles, labels = plt.gca().get_legend_handles_labels()
+        by_label = dict(zip(labels, handles))
+        ax1.legend(by_label.values(), by_label.keys())
+
+        fig.colorbar(p, ax=ax1)
+        plt.show()
+        #could add option to save the graph too here
+    else:
+        #if it's not the end of the graph, return the figure objects
+        return [fig, ax1, p]
+    
     
     
 '''
