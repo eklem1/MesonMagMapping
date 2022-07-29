@@ -29,7 +29,6 @@ import scipy.interpolate as interp
 
 # ### Import data
 
-
 df1 = pd.read_csv('Mapping_0809_RUN1.csv')
 df2 = pd.read_csv('Mapping_0809_RUN2.csv')
 df3 = pd.read_csv('Mapping_0809_RUN3.csv')
@@ -41,7 +40,7 @@ df_all  = df_all1.append(df4)
 
 df_all['x'] = - df_all.u + 10.25
 df_all['y'] = -df_all.w
-df_all['z'] = df_all.v -1.25 +188.1 -275 
+df_all['z'] = df_all.v -1.25 +188.1 -275 #-> sets z = 0 to the center of the MSR 
 # -1.25cm accounts for the position of the sensing center of the probe and the marker on the probe. 
 # + 188.1cm: from z=0 of the measurement to the floor, -275cm: from the floor to the planned center of MSR
 # df_all['z'] = df_all.v -1.25 ## previous version
@@ -49,8 +48,6 @@ df_all['z'] = df_all.v -1.25 +188.1 -275
 df_all['B_x'] = -df_all['B_u']
 df_all['B_y'] = -df_all['B_w']
 df_all['B_z'] = -df_all['B_v'] 
-
-
 
 # df_all.to_csv('data_csv/rawdata_all.csv')
 # df_plat0 = df_all[df_all.z>0]
@@ -112,6 +109,28 @@ df_all_sub = df_all[(df_all.x <= x_cut_max) & (df_all.x >= x_cut_min)
 
 print(df_all_sub.index.size)
 df_all_sub.index.name = 'index'
+
+# """
+#copied from plot_simple_cut_horizontal.py for interpolation, but this is only made for interpolation on a plane
+# can I just exend this to 3D and then save the resulting data in a form I can use in PENTrack (once the relative
+#positioning is fixed?)
+
+z_min, z_max= np.min(df_all_sub.z), np.max(df_all_sub.z)
+y_min, y_max= np.min(df_all_sub.y), np.max(df_all_sub.y)
+NL = 50 # this defines the number of points for interpolation,  default is 50
+
+z_dense, y_dense = np.meshgrid(np.linspace(z_min, z_max, NL), np.linspace(y_min,y_max, NL))
+
+# Bx_rbf = interp.Rbf(df_all_sub.z, df_all_sub.y, df_all_sub.B_u, function='cubic', smooth=0)  # default smooth=0 for interpolation
+Bx_rbf = interp.Rbf(df_all_sub.z, df_all_sub.y, df_all_sub.B_x, function='cubic', smooth=0)  # default smooth=0 for interpolation
+Bx_dense = Bx_rbf(z_dense, y_dense)  # not really a function, but a callable class instance
+
+Bz_rbf = interp.Rbf(df_all_sub.z, df_all_sub.y, df_all_sub.B_z, function='cubic', smooth=0)  # default smooth=0 for interpolation
+Bz_dense = Bz_rbf(z_dense, y_dense)  # not really a function, but a callable class instance
+
+By_rbf = interp.Rbf(df_all_sub.z, df_all_sub.y, df_all_sub.B_y, function='cubic', smooth=0)  # default smooth=0 for interpolation
+By_dense = By_rbf(z_dense, y_dense)  # not really a function, but a callable class instance
+# """
 
 
 df_all_sub[['x','y','z','B_x','B_y','B_z']].to_csv('data_export/map_export1_[%.1f,%.1f]_[%.1f,%.1f]_[%.1f,%.1f].csv' %(x_cut_min, x_cut_max, y_cut_min, y_cut_max, z_cut_min, z_cut_max))
