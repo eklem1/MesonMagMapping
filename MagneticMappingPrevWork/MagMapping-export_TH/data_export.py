@@ -45,7 +45,7 @@ df_all['z'] = df_all.v -1.25 +188.1 -275 #-> sets z = 0 to the center of the MSR
 # + 188.1cm: from z=0 of the measurement to the floor, -275cm: from the floor to the planned center of MSR
 # df_all['z'] = df_all.v -1.25 ## previous version
 
-df_all['B_x'] = -df_all['B_u']
+df_all['B_x'] = -df_all['B_u'] #why this?
 df_all['B_y'] = -df_all['B_w']
 df_all['B_z'] = -df_all['B_v'] 
 
@@ -115,54 +115,34 @@ df_all_sub.index.name = 'index'
 
 
 
-
-
 # """
-#copied from plot_simple_cut_horizontal.py for interpolation, but this is only made for interpolation on a plane
+# copied from plot_simple_cut_horizontal.py for interpolation, but this is only made for interpolation on a plane
 # can I just exend this to 3D and then save the resulting data in a form I can use in PENTrack (once the relative
 #positioning is fixed?)
 
-# ### Make a cut with x=const., select the range of z, interpolate the subset of data
-
-# The original data is B_i(x,y,z) (i={x,y,z}), each of the three components is a three-dimensional function
-# In the following, a cut is obtained for x=c (const.), B_i(y,z|x=c)
-
-idx_ucut = 3 # set the index of x to make a cut, can be 0 to 9
-x_cut=x_all[idx_ucut]
-z_cut_min = -180
-z_cut_max = 250
-
-df_all_sub = df_all[(df_all.x==x_cut) & (df_all.z <= z_cut_max) & (df_all.z >= z_cut_min)] # select the subset of the data frame
-# print df_all_sub.index.size
-
+x_min, x_max= np.min(df_all_sub.x), np.max(df_all_sub.x)
 z_min, z_max= np.min(df_all_sub.z), np.max(df_all_sub.z)
 y_min, y_max= np.min(df_all_sub.y), np.max(df_all_sub.y)
 NL = 50 # this defines the number of points for interpolation,  default is 50
 
-# x_dense, z_dense, y_dense = np.meshgrid(np.linspace(x_min, x_max, NL), np.linspace(z_min, z_max, NL), np.linspace(y_min,y_max, NL))
-z_dense, y_dense = np.meshgrid(np.linspace(z_min, z_max, NL), np.linspace(y_min,y_max, NL))
+x_dense, z_dense, y_dense = np.meshgrid(np.linspace(x_min, x_max, NL), np.linspace(z_min, z_max, NL), np.linspace(y_min,y_max, NL))
 
+Bx_rbf = interp.Rbf(df_all_sub.x, df_all_sub.z, df_all_sub.y, df_all_sub.B_x, function='cubic', smooth=0)  # default smooth=0 for interpolation
+Bx_dense = Bx_rbf(x_dense, z_dense, y_dense)  # not really a function, but a callable class instance
 
-# Bx_rbf = interp.Rbf(df_all_sub.z, df_all_sub.y, df_all_sub.B_u, function='cubic', smooth=0)  # default smooth=0 for interpolation
-Bx_rbf = interp.Rbf(df_all_sub.z, df_all_sub.y, df_all_sub.B_x, function='cubic', smooth=0)  # default smooth=0 for interpolation
-Bx_dense = Bx_rbf(z_dense, y_dense)  # not really a function, but a callable class instance
+Bz_rbf = interp.Rbf(df_all_sub.x, df_all_sub.z, df_all_sub.y, df_all_sub.B_z, function='cubic', smooth=0)  # default smooth=0 for interpolation
+Bz_dense = Bz_rbf(x_dense, z_dense, y_dense)  # not really a function, but a callable class instance
 
-Bz_rbf = interp.Rbf(df_all_sub.z, df_all_sub.y, df_all_sub.B_z, function='cubic', smooth=0)  # default smooth=0 for interpolation
-Bz_dense = Bz_rbf(z_dense, y_dense)  # not really a function, but a callable class instance
-
-By_rbf = interp.Rbf(df_all_sub.z, df_all_sub.y, df_all_sub.B_y, function='cubic', smooth=0)  # default smooth=0 for interpolation
-By_dense = By_rbf(z_dense, y_dense)  # not really a function, but a callable class instance
+By_rbf = interp.Rbf(df_all_sub.x, df_all_sub.z, df_all_sub.y, df_all_sub.B_y, function='cubic', smooth=0)  # default smooth=0 for interpolation
+By_dense = By_rbf(x_dense, z_dense, y_dense)  # not really a function, but a callable class instance
 # """
 
-# print(df_all_sub.index, df_all_sub.columns)
-# print(x_cut)
 
 NT = np.product(y_dense.shape)
-# print(NT)
 
 data = {
-    # "x": np.reshape(xx,NT),
-    "x": np.ones(NT)*x_cut,
+    "x": np.reshape(x_dense,NT),
+    # "x": np.ones(NT)*x_cut,
     "y": np.reshape(y_dense,NT),
     "z": np.reshape(z_dense,NT),
     "B_x": np.reshape(Bx_dense, NT),
@@ -170,12 +150,8 @@ data = {
     "B_z": np.reshape(Bz_dense, NT),
 }
 
-df_all_intr = pd.DataFrame(data, columns=['x','y','z','B_x','B_y','B_z']) #df_all_sub.index, ['x','y','z','B_x','B_y','B_z'])
+df_all_intr = pd.DataFrame(data, columns=['x','y','z','B_x','B_y','B_z'])
 df_all_intr.index.name = 'index'
 
-# print(df_all_intr.columns)
-
-print(df_all_intr)
-
-df_all_intr[['x','y','z','B_x','B_y','B_z']].to_csv('data_export/map_interpXcu%i_[%.1f,%.1f]_[%.1f,%.1f]_[%.1f,%.1f].csv' 
+df_all_intr[['x','y','z','B_x','B_y','B_z']].to_csv('data_export/map_2interp%i_[%.1f,%.1f]_[%.1f,%.1f]_[%.1f,%.1f].csv' 
     %(NL, x_cut_min, x_cut_max, y_cut_min, y_cut_max, z_cut_min, z_cut_max))
