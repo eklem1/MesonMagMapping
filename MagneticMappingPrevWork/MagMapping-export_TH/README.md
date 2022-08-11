@@ -1,16 +1,9 @@
-# tucan-magnetics-mapping-export_20200129
-The codes to make 3D plots of the magnetic field map and to export the map in a range defined by the user
+# MagMapping-export_TH
+This code is based on Takashi Higuchi's work done on data taken in summer 2019 mapping the magnetic field in a region near where the MSR was planned to be at the time. The orginal code can be found [here](https://github.com/takashihiguchi/tucan-magnetics-mapping-export_20200129).
 
-Measurement data file of each 'RUN' (input of the codes):
-- Mapping_0809_RUN1.csv
-- Mapping_0809_RUN2.csv
-- Mapping_0809_RUN3.csv
-- Mapping_0809_RUN4.csv
+The orginal measurements were taken on a grid in 40 cm intervals for 3 different levels, and code was written to then interpolate this data and shift the coordinates so that z=0 was the planned center of MSL-MSR. This is all done in [ data_export.py](https://github.com/eklem1/UCN_work/blob/master/MagneticMappingPrevWork/MagMapping-export_TH/data_export.py).
 
-Code to export data in a range selected by the user, the origin is defined such taht z=0 is the planned center of MSL-MSR:
+I would like to use this data as a starting point for my simulations of the adiabatic paramter in the UCN guiding tubes to use in the design of the guiding fields.
 
-- data_export.py
+However, to use this data in a [PENTrack simulation](https://github.com/eklem1/Guides_nEDMsensitivity), a different coordinate system is needed, as well as the data file needs to be in a specified format. This is currently a work in progress in [PositionCalibration.ipynb](https://github.com/eklem1/UCN_work/blob/master/MagneticMappingPrevWork/MagMapping-export_TH/PositionCalibration.ipynb).
 
-Code to make a 2D plot of each of the magnetic field componnet (Bx,By,Bz) at a cut plane x=const.:
-
-- plot_simple_cut_horizontal.py
