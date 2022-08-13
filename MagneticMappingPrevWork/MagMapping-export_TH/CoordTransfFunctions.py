@@ -10,7 +10,7 @@
 import pandas as pd
 import numpy as np
 # get_ipython().magic(u'matplotlib notebook')
-# from IPython.display import display
+from IPython.display import display
 import matplotlib
 # matplotlib.use('TkAgg')
 from matplotlib import pyplot as plt
@@ -20,7 +20,12 @@ from matplotlib import cm
 import sys
 import os
 sys.path.insert(1, '../../PENTrackAnalysis/')
-# import ParticlePlottingFunctions as ppf
+import ParticlePlottingFunctions as ppf
+
+def Limits(data):
+    print(f"x: [{min(data['x'])}, {max(data['x'])}], y: [{min(data['y'])}, {max(data['y'])}], z: [{min(data['z'])}, {max(data['z'])}]")
+    print(f"Bx: [{min(data['B_x'])}, {max(data['B_x'])}], By: [{min(data['B_y'])}, {max(data['B_y'])}], Bz: [{min(data['B_z'])}, {max(data['B_z'])}]")
+
 
 def MakeCube(axes, center=np.array([0,0,0]), sideLengths = np.array([3.5, 3.5, 3.5]) , c='black', angle=0):
     """
@@ -107,8 +112,12 @@ def getCorners(data):
     
     return corners_MSRframe
 
-def plotMapping(ax, data, title, units="cm", view=0, angle=0, STLs=False, legend=True):
-    center, corners, dataXB, MSR_center, Or = data
+def plotMapping(ax, data, title, units="cm", view=0, angle=0, STLs=False, legend=True, txtSize='medium'):
+    if len(data) == 5:
+        center, corners, dataXB, MSR_center, Or = data
+    else:
+        print("Bad data passed")
+        return
 
     ax.set_title(title, pad=-10)
     
@@ -140,7 +149,9 @@ def plotMapping(ax, data, title, units="cm", view=0, angle=0, STLs=False, legend
     ax.set_ylabel(f'y [{units}]')
     ax.set_zlabel(f'z [{units}]')
     if legend:
-        ax.legend(loc='center left')
+        ax.legend(loc='center left', bbox_to_anchor=(-.4, 0.3), fontsize=txtSize)
+
+    return
 
 def rotate(p, origin=(0, 0), degrees=0):
     #https://stackoverflow.com/questions/34372480/rotate-point-about-another-point-in-degrees-python
@@ -197,12 +208,10 @@ def rotateBData(df_data, origin, angle):
     data_pos = rotate3D(df_data[['x', 'y', 'z']].values, origin=origin, degrees=angle)
     
     #gotta check this part makes sense
-#     print(df_data[['B_x', 'B_y', 'B_z']].head())
     data_B = rotate3D(df_data[['B_x', 'B_y', 'B_z']].values, origin=origin, degrees=angle)
-    print(f"after rotation of {angle} degrees")
+    # print(f"Rotation of {angle} degrees")
     
     df_data_rot = pd.DataFrame(data_pos, columns=['x', 'y', 'z'])
-#     print(df_data_rot)
     df_data_rot[['B_x', 'B_y', 'B_z']] = data_B
     
     return df_data_rot
@@ -229,24 +238,37 @@ def FixOffset(df_BField_data, plot=False, alpha=.01):
     MSR_center_PEN = rotate3D(MSR_center_PEN_notRot.T, origin=O_PEN_notRot, degrees=rotationAngle).T
     O_PEN = O_PEN_notRot
 
+    data_return = [center_PEN, corners_PEN, data_PEN, MSR_center_PEN, O_PEN]
+
+    data_PEN_m = data_PEN.copy()
+    data_PEN_m[['x', 'y', 'z']] = data_PEN_m[['x', 'y', 'z']]/100
+
 #     print(off_sets, MSR_center_PEN)
-    data2 = [center_PEN, corners_PEN, data_PEN, MSR_center_PEN, O_PEN]
+    data2 = [center_PEN/100, corners_PEN/100, data_PEN_m, MSR_center_PEN/100, O_PEN/100]
 
     #need to pad data to get a rectilinear grid
 
     if plot:
-        fig = plt.figure(figsize=(15, 15))
+        fig = plt.figure(figsize=(11, 5))
         ax1 = fig.add_subplot(1, 2, 1, projection='3d')
         ax2 = fig.add_subplot(1, 2, 2, projection='3d')
 
-        plotMapping(ax1, data1, title="PENTrack origin, orientation", view=4)
-        Q = ax1.scatter(data1[2]['x'], data1[2]['y'], data1[2]['z'],c=data1[2]['B_x']*100, s=1, alpha=alpha, cmap=cm.plasma)
+        plotMapping(ax1, data1, title="PENTrack origin, pre rotation", view=4)
+        B1 = np.sqrt(data1[2]['B_x']**2 + data1[2]['B_y']**2 + data1[2]['B_z']**2 )*100 #muT
+        Q = ax1.scatter(data1[2]['x'], data1[2]['y'], data1[2]['z'],c=B1, s=1, alpha=alpha, cmap=cm.plasma)
 
-        plotMapping(ax2, data2, title="PENTrack frame", view=4, angle=rotationAngle, units="cm", STLs=False, legend=False)
-        Q = ax2.scatter(data2[2]['x'], data2[2]['y'], data2[2]['z'],c=data2[2]['B_x']*100, s=1, alpha=alpha, cmap=cm.plasma)
+        plotMapping(ax2, data2, title="PENTrack frame", view=4, angle=rotationAngle, units="m", STLs=False, legend=False)
 
+        B2 = np.sqrt(data2[2]['B_x']**2 + data2[2]['B_y']**2 + data2[2]['B_z']**2 )*100 #muT
+        Q = ax2.scatter(data2[2]['x'], data2[2]['y'], data2[2]['z'],c=B2, s=1, alpha=alpha, cmap=cm.plasma)
+
+        # [left, bottom, width, height] 
+        cax = fig.add_axes([ax2.get_position().x1+0.04, ax2.get_position().y0, 0.02, ax1.get_position().y1-ax1.get_position().y0])
+
+        cbar = fig.colorbar(Q, label='$\mathsf{|B|\,(\mu T)}$', cax=cax)
+        plt.subplots_adjust(wspace=0.0)
         plt.show() 
         
     
-    return data_PEN, off_sets, rotationAngle, center_PEN
+    return data_PEN, off_sets, rotationAngle, center_PEN, data_return
     
