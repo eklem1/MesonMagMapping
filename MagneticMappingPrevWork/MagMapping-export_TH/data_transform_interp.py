@@ -32,7 +32,7 @@ import CoordTransfFunctions as ctf
 
 ### Import data
 
-# I am pretty sure this data is in [cm] and [0.1 mT = 1e-4 T]
+# I am pretty sure this data is in [cm] and [0.1 mT = 1e-4 T = 1 G]
 df1 = pd.read_csv('Mapping_0809_RUN1.csv')
 df2 = pd.read_csv('Mapping_0809_RUN2.csv')
 df3 = pd.read_csv('Mapping_0809_RUN3.csv')

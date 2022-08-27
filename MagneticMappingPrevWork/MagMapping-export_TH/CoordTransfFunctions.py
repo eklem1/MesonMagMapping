@@ -183,12 +183,18 @@ def refToPENTrack(data_T, center_T):
         center_T - the center of this data (0,0,0)
     Returns:
         center, corners, data_transf, MSR_center
+        all in cm
     """
 
-    
-    x_off = 161.2 - 126 # cm
-    y_off = 187 + 464.05 # cm
-    z_off = + 16.3 # cm
+    #First try at centering, using the corner marked as F1 on the floor
+    # x_off = 161.2 - 126 # cm
+    # y_off = 187 + 464.05 # cm
+    # z_off = + 16.3 # cm
+
+    #Using the center of the MSR that Tony marked for me
+    x_off = 51.7 - 22.3# cm #deltaX of C_MSR to C_T - deltaX of C_MSR to C_SMC
+    y_off = + 648.9 # cm #as the MSR center is already aligned with C_T, this is just the distance from the C_MSR to the C_SCM
+    z_off = + 16.3 # cm #vertical center of the MSR has changed in designs by this much, based off prev. distance to concrete floor
     
     center = np.array([center_T[0]+x_off, center_T[1]+y_off, center_T[2]+z_off])
     MSR_center = np.array([-22.3, 643.8,0])
@@ -201,7 +207,7 @@ def refToPENTrack(data_T, center_T):
     
     corners = getCorners(data_transf)
     
-    return center, corners, data_transf, MSR_center
+    return center, corners, data_transf, MSR_center #C_SMC = (0,0,0)
 
 
 def rotateBData(df_data, origin, angle):
@@ -243,7 +249,7 @@ def FixOffset(df_BField_data, plot=False, alpha=.01):
     data_PEN_m = data_PEN.copy()
     data_PEN_m[['x', 'y', 'z']] = data_PEN_m[['x', 'y', 'z']]/100
 
-#     print(off_sets, MSR_center_PEN)
+    # print(off_sets, MSR_center_PEN)
     data2 = [center_PEN/100, corners_PEN/100, data_PEN_m, MSR_center_PEN/100, O_PEN/100]
 
     #need to pad data to get a rectilinear grid
