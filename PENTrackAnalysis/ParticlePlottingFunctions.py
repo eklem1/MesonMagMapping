@@ -60,7 +60,7 @@ def pltShape(x, y, z, startPlot=True, endPlot=True, label="", figVals=None, ls="
 '''
 A function to graph the 3D position, in a 3D scatter plot.
 '''
-def plot3D(x, y, z, startPlot=True, endPlot=True, label="", figVals=None, ls="None", size=(8,8)):
+def plot3D(x, y, z, startPlot=True, endPlot=True, label="", figVals=None, ls="None", size=(8,8), c=None):
     if startPlot:
         fig = plt.figure(figsize=size)
         ax1 = fig.add_subplot(1,1,1, projection='3d')
@@ -76,7 +76,10 @@ def plot3D(x, y, z, startPlot=True, endPlot=True, label="", figVals=None, ls="No
         fig, ax1 = figVals
     
     #the 3D plot
-    ax1.plot3D(x, y, z, linestyle=ls, label=label, marker='o')
+    if isinstance(c, type(None)):
+        ax1.plot3D(x, y, z, linestyle=ls, label=label, marker='o')
+    else:
+        ax1.plot3D(x, y, z, linestyle=ls, label=label, marker='o', color=c)
     
     if endPlot:
         ax1.legend()
