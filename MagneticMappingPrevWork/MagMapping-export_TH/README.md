@@ -70,9 +70,9 @@ $C_{MSR} \rightarrow C_{SCM} = (22.3, -648.9, 0)$ cm
 
 So in total the offset needed to move $C_{T}$ to using $C_{SCM}$ as the origin is: $C_{SCM} \rightarrow C_{T} = (29.4, 648.9, 16.3)$ cm
 <p align="middle">
-<img align="middle" src="./Photos/FrameChange.png" width="400" title="My sketch of the change of frames" />
+<img align="middle" src="./Photos/FrameChange.png" width="500" title="My sketch of the change of frames" />
 </p>
 
 The shifts of the origin is easy, as you just need to add this shift ($C_{SCM} \rightarrow C_{T}$) to the data's coordinates. However to deal with the rotation you need to rotate not only the coordinates of each data point, but also components of the magnetic field correctly. Finally the resulting data that PENTrack will accept also needs rectlinear data. 
 
-This is done by first shifting and rotating the raw data, and then doing the interpolation to get a finer grid already in $F_{P}$. Then finally we set all the $\vec{B}$ values outside the orginal rectacular area to 0 as to not extrapolate data in a region we know nothing about.
+This is done by first shifting and rotating the raw data, and then doing the interpolation to get a finer grid already in $F_{P}$. Then finally we set all the $\vec{B}$ values outside the orginal rectangular area to 0 as to not extrapolate data in a region we know nothing about.
