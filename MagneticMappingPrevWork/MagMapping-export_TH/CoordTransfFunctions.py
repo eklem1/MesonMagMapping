@@ -154,6 +154,7 @@ def plotMapping(ax, data, title, units="cm", view=0, angle=0, STLs=False, legend
     return
 
 def rotate(p, origin=(0, 0), degrees=0):
+    #2D rotation
     #https://stackoverflow.com/questions/34372480/rotate-point-about-another-point-in-degrees-python
     angle = np.deg2rad(degrees)
     R = np.array([[np.cos(angle), -np.sin(angle)],
@@ -164,6 +165,7 @@ def rotate(p, origin=(0, 0), degrees=0):
 
 
 def rotate3D(p, origin=(0, 0, 0), degrees=0):
+    #3D rotation
     angle = np.deg2rad(degrees)
     R = np.array([[np.cos(angle), -np.sin(angle), 0],
                   [np.sin(angle),  np.cos(angle), 0],
@@ -226,6 +228,9 @@ def FixOffset(df_BField_data, plot=False, alpha=.01):
    
     center_T = np.array([0, 0, 0]) #our intial origin
     data_T = df_BField_data[["x", "y", "z", "B_x", "B_y", "B_z"]] #original data
+
+    #there might be another rotation to do here, as the grid used to take this data is
+    #not exactly straight with the sides of the MSR
 
     #getting the correct shift to use in PENtrack, but not the coordinate rotation
     center_PEN_notRot, corners_PEN_notRot, data_PEN_notRot, MSR_center_PEN_notRot = refToPENTrack(data_T, center_T)

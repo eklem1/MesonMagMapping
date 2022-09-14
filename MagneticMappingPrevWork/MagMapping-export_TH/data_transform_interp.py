@@ -6,7 +6,7 @@
 # This code imports the mapping data as a pandas data frame, 
 # rotates and shifts the data before interpolating for a given
 # range and setting the edges of the region outside where data
-# was taken to ?
+# was taken to 0
 #############################################################
 
 ### imports
@@ -21,18 +21,14 @@ from matplotlib import pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D  
 from matplotlib import cm
 from datetime import date
-
-# from matplotlib.ticker import LinearLocator, FormatStrFormatter
-# from matplotlib.ticker import FormatStrFormatter
-
 import scipy
 import scipy.interpolate as interp
 import CoordTransfFunctions as ctf
 
 
-### Import data
+### Import data ###
 
-# I am pretty sure this data is in [cm] and [0.1 mT = 1e-4 T = 1 G]
+# This data is in [cm] and [0.1 mT = 1e-4 T = 1 G]
 df1 = pd.read_csv('Mapping_0809_RUN1.csv')
 df2 = pd.read_csv('Mapping_0809_RUN2.csv')
 df3 = pd.read_csv('Mapping_0809_RUN3.csv')
@@ -75,7 +71,6 @@ v_all = df_all.v.unique()
 w_all = df_all.w.unique()
 u_all = df_all.u.unique()
 
-
 z_all = df_all.z.unique()
 y_all = df_all.y.unique()
 x_all = df_all.x.unique()
@@ -103,15 +98,16 @@ df_all_sub = df_all_sub[['x','y','z','B_x','B_y','B_z']]
 print("Original data")
 ctf.Limits(df_all_sub)
 
-### Re orientation
+### Re orientation ###
 # All the work is done in the functions in CoordTransfFunctions.py
 
 df_BField_data_fixed, off_sets, rotation, off_setwithRotation, data_total = ctf.FixOffset(df_all_sub, plot=False, alpha=.5)
 
 print("Transformed data")
+#prints out the limits of the transformed data, in position and strength of the B field
 ctf.Limits(df_BField_data_fixed)
 
-### Interpolation
+### Interpolation ###
 
 # copied from plot_simple_cut_horizontal.py for interpolation
 
@@ -169,7 +165,7 @@ data_interp[2] = df_all_intr
 # plt.subplots_adjust(wspace=0.0)
 # plt.show()
 
-### Data removal
+### Data removal ##
 def Remove_Data(x, y, corners):
     """
     'Removes' data outside of the original range before interpolation
@@ -231,7 +227,7 @@ plt.subplots_adjust(wspace=0.0)
 plt.show()
 
 
-### Save to txt file for PENTrack
+### Save to txt file for PENTrack ###
 
 BField_data_fixed = data_interp[2].to_numpy()
 BField_Names = data_interp[2].columns
