@@ -24,6 +24,11 @@ import scipy
 import scipy.interpolate as interp
 import CoordTransfFunctions_fall as ctf
 
+#if set to False, the origin will be the MSR, and no rotation transformation will be preformed
+SET_FINAL_ORIGIN_PENTRACK = False #not currently doing anything
+#if True, cuts data range to compare with new data
+CUT = False 
+
 
 ### Import data ###
 
@@ -70,16 +75,19 @@ ctf.Limits(df_BField_data_fixed_red)
 
 df_BField_data_tryTogether = df_BField_data_fixed_red.append(df_BField_data_fixed_green)
 
-x_cut_min = np.min(-90.100)
-x_cut_max = np.max(119.109)
-y_cut_min = np.min(-152.3023)
-y_cut_max = np.max(-72.2037)
-z_cut_min = np.min(-151.385)
-z_cut_max = np.max(8.62380)
+if CUT:
+    x_cut_min = -90.100
+    x_cut_max = 119.109
+    y_cut_min = -152.3023
+    y_cut_max = -72.2037
+    z_cut_min = -151.385
+    z_cut_max = 8.62380
 
-df_BField_data_tryTogether = df_BField_data_tryTogether[(df_BField_data_tryTogether.x <= x_cut_max) & (df_BField_data_tryTogether.x >= x_cut_min)
-                    & (df_BField_data_tryTogether.y <= y_cut_max) & (df_BField_data_tryTogether.y >= y_cut_min)
-                    & (df_BField_data_tryTogether.z <= z_cut_max) & (df_BField_data_tryTogether.z >= z_cut_min)] # select the subset of the data frame
+    df_BField_data_tryTogether = df_BField_data_tryTogether[(df_BField_data_tryTogether.x <= x_cut_max) & (df_BField_data_tryTogether.x >= x_cut_min)
+                        & (df_BField_data_tryTogether.y <= y_cut_max) & (df_BField_data_tryTogether.y >= y_cut_min)
+                        & (df_BField_data_tryTogether.z <= z_cut_max) & (df_BField_data_tryTogether.z >= z_cut_min)] # select the subset of the data frame
+    print("Cut data")
+    ctf.Limits(df_BField_data_tryTogether)
 
 ### Interpolation ###
 
@@ -95,9 +103,13 @@ dataSets = [df_BField_data_tryTogether]
 
 for df_data in dataSets:
 
-    x_min, x_max= np.min(df_data.x), np.max(df_data.x)
-    z_min, z_max= np.min(df_data.z), np.max(df_data.z)
-    y_min, y_max= np.min(df_data.y), np.max(df_data.y)
+    # x_min, x_max= np.min(df_data.x), np.max(df_data.x)
+    # z_min, z_max= np.min(df_data.z), np.max(df_data.z)
+    # y_min, y_max= np.min(df_data.y), np.max(df_data.y)
+
+    x_min, x_max= -90.100, 119.109
+    z_min, z_max= -152.3023, -72.2037
+    y_min, y_max= -151.385, 8.62380
 
     NL = 50 # this defines the number of points for interpolation, default is 50
 
@@ -137,7 +149,7 @@ for df_data in dataSets:
 
 
 ### Add data together ### or do here?
-# Now the properly orientated data can be combined
+# Now the properly orientated data can be combined?
 
 data_interp = data_total.copy()
 data_interp[2] = df_BField_data_fixed

@@ -29,7 +29,7 @@ import CoordTransfFunctions as ctf
 ### Import data ###
 
 #if set to False, the origin will be the MSR, and no rotation transformation will be preformed
-SET_FINAL_ORIGIN_PENTRACK = True
+SET_FINAL_ORIGIN_PENTRACK = False
 #if True, cuts data range to compare with new data
 CUT = False 
 
@@ -121,12 +121,12 @@ if CUT:
     # y    -152.302330              y     -72.203790
     # z     -151.385650             z        8.623800
 
-    x_cut_min = np.min(-90.100)
-    x_cut_max = np.max(119.109)
-    y_cut_min = np.min(-152.3023)
-    y_cut_max = np.max(-72.2037)
-    z_cut_min = np.min(-151.385)
-    z_cut_max = np.max(8.62380)
+    x_cut_min = -90.100
+    x_cut_max = 119.109
+    y_cut_min = -152.3023
+    y_cut_max = -72.2037
+    z_cut_min = -151.385
+    z_cut_max = 8.62380
 
     df_BField_data_fixed = df_BField_data_fixed[(df_BField_data_fixed.x <= x_cut_max) & (df_BField_data_fixed.x >= x_cut_min)
                         & (df_BField_data_fixed.y <= y_cut_max) & (df_BField_data_fixed.y >= y_cut_min)
@@ -135,13 +135,23 @@ if CUT:
     print("Cut data")
     ctf.Limits(df_BField_data_fixed)
 
+#conversion to muT - if you want it
+df_BField_data_fixed['B_x'] = df_BField_data_fixed['B_x'] * 100
+df_BField_data_fixed['B_y'] = df_BField_data_fixed['B_y'] * 100
+df_BField_data_fixed['B_z'] = df_BField_data_fixed['B_z'] * 100
+
+
 ### Interpolation ###
 
 # copied from plot_simple_cut_horizontal.py for interpolation
 
-x_min, x_max= np.min(df_BField_data_fixed.x), np.max(df_BField_data_fixed.x)
-z_min, z_max= np.min(df_BField_data_fixed.z), np.max(df_BField_data_fixed.z)
-y_min, y_max= np.min(df_BField_data_fixed.y), np.max(df_BField_data_fixed.y)
+# x_min, x_max= np.min(df_BField_data_fixed.x), np.max(df_BField_data_fixed.x)
+# z_min, z_max= np.min(df_BField_data_fixed.z), np.max(df_BField_data_fixed.z)
+# y_min, y_max= np.min(df_BField_data_fixed.y), np.max(df_BField_data_fixed.y)
+
+x_min, x_max= -90.100, 119.109
+z_min, z_max= -152.3023, -72.2037
+y_min, y_max= -151.385, 8.62380
 
 NL = 50 # this defines the number of points for interpolation, default is 50
 
@@ -282,17 +292,17 @@ if SET_FINAL_ORIGIN_PENTRACK:
 
 else:
     comment = "This data is interpolated from Takashi's summer 2019 data. The data has been shifted"+\
-        " so the MSR is the origin, as well as interpolated."
-
+        " so the MSR is the origin, as well as interpolated and cut to match fall 2022 data for comparing."
+            # , as well as interpolated and cut to match fall 2022 data for comparing."
     file = 'original data'
 
     headerText = f'File: {file}\n' + f'Date created: {date.today().strftime("%d/%m/%Y")}\n'\
-        + 'Units: [cm], [G = 1e-4 T]\n' +f'Offset from original data used: {off_sets} cm\n + \nRotation about z axis: '\
+        + 'Units: [cm], [1 muT = 1e-6 T]\n' +f'Offset from original data used: {off_sets} cm\n + \nRotation about z axis: '\
         + f'{rotation} degrees\n' + f'Resulting total origin shift: {off_setwithRotation} cm\n'\
         + f'Comments: {comment}\n' + '\t'.join(BField_Names)
 
-    file_save = f"map_referencedMSR_interp{NL}"
-    # file_save = f"map_referencedMSR_interpCUT{NL}"
+    # file_save = f"map_referencedMSR_interp{NL}"
+    file_save = f"map_referencedMSR_interpCUT{NL}"
 
     if CutCorners:
         file_save = file_save + "_cutCorners"
