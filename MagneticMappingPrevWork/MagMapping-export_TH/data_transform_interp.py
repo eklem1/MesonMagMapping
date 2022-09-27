@@ -28,6 +28,9 @@ import CoordTransfFunctions as ctf
 
 ### Import data ###
 
+SET_FINAL_ORIGIN_PENTRACK = False
+#if set to False, the origin will be the MSR, and no rotation transformation will be preformed
+
 # This data is in [cm] and [0.1 mT = 1e-4 T = 1 G]
 df1 = pd.read_csv('Mapping_0809_RUN1.csv')
 df2 = pd.read_csv('Mapping_0809_RUN2.csv')
@@ -101,11 +104,37 @@ ctf.Limits(df_all_sub)
 ### Re orientation ###
 # All the work is done in the functions in CoordTransfFunctions.py
 
-df_BField_data_fixed, off_sets, rotation, off_setwithRotation, data_total = ctf.FixOffset(df_all_sub, plot=False, alpha=.5)
+if SET_FINAL_ORIGIN_PENTRACK:
+    df_BField_data_fixed, off_sets, rotation, off_setwithRotation, data_total = ctf.FixOffset(df_all_sub, plot=False, alpha=.5, PEN_origin=True)
+else:
+    # to use the MSR as the origin
+    df_BField_data_fixed, off_sets, rotation, off_setwithRotation, data_total = ctf.FixOffset(df_all_sub, plot=False, alpha=.5, PEN_origin=False)
+
 
 print("Transformed data")
 #prints out the limits of the transformed data, in position and strength of the B field
 ctf.Limits(df_BField_data_fixed)
+
+CUT = False #cuts data range to compare with new data
+if CUT:
+    
+    # mins: x      -90.100000 max: x    119.109390
+    # y    -152.302330              y     -72.203790
+    # z     -151.385650             z        8.623800
+
+    x_cut_min = np.min(-90.100)
+    x_cut_max = np.max(119.109)
+    y_cut_min = np.min(-152.3023)
+    y_cut_max = np.max(-72.2037)
+    z_cut_min = np.min(-151.385)
+    z_cut_max = np.max(8.62380)
+
+    df_BField_data_fixed = df_BField_data_fixed[(df_BField_data_fixed.x <= x_cut_max) & (df_BField_data_fixed.x >= x_cut_min)
+                        & (df_BField_data_fixed.y <= y_cut_max) & (df_BField_data_fixed.y >= y_cut_min)
+                        & (df_BField_data_fixed.z <= z_cut_max) & (df_BField_data_fixed.z >= z_cut_min)] # select the subset of the data frame
+
+    print("Cut data")
+    ctf.Limits(df_BField_data_fixed)
 
 ### Interpolation ###
 
@@ -115,7 +144,7 @@ x_min, x_max= np.min(df_BField_data_fixed.x), np.max(df_BField_data_fixed.x)
 z_min, z_max= np.min(df_BField_data_fixed.z), np.max(df_BField_data_fixed.z)
 y_min, y_max= np.min(df_BField_data_fixed.y), np.max(df_BField_data_fixed.y)
 
-NL = 50 # this defines the number of points for interpolation,  default is 50
+NL = 50 # this defines the number of points for interpolation, default is 50
 
 x_dense, z_dense, y_dense = np.meshgrid(np.linspace(x_min, x_max, NL), np.linspace(z_min, z_max, NL), np.linspace(y_min,y_max, NL))
 
@@ -148,7 +177,6 @@ df_all_intr.index.name = 'index'
 print("Interpolated data")
 ctf.Limits(df_all_intr)
 
-
 data_interp = data_total.copy()
 data_interp[2] = df_all_intr
 
@@ -168,14 +196,13 @@ data_interp[2] = df_all_intr
 ### Data removal ##
 def Remove_Data(x, y, corners):
     """
-    'Removes' data outside of the original range before interpolation
+    'Removes' data that was outside of the original range before interpolation
     """
     lines = []
     for i in range(len(corners[:4])):
         xs = [corners[i,0], corners[(i+1)%4,0]]
         ys = [corners[i,1], corners[(i+1)%4,1]]
         a,b = np.polyfit(xs, ys, 1)
-#         print(a,b)        
         lines.append(a*x+b)
 
     # plt.plot(x, lines[0], label="1")
@@ -195,7 +222,11 @@ def Remove_Data(x, y, corners):
     
     return goodpoints
 
-CutCorners = True
+if SET_FINAL_ORIGIN_PENTRACK:
+    CutCorners = True
+else:
+    #should be false if you are in the MSR frame, as we have no weird corners to cut
+    CutCorners = False
 
 if CutCorners:
     # [center_PEN, corners_PEN, data_PEN, MSR_center_PEN, O_PEN]
@@ -232,21 +263,41 @@ plt.show()
 BField_data_fixed = data_interp[2].to_numpy()
 BField_Names = data_interp[2].columns
 
-comment = "This data is interpolated from Takashi's summer 2019 data. The data has been shifted and rotated to,"+\
-    " to match the origin and axes used in PENTrack STL files, as well as interpolated to a rectilinear grid in this " +\
-    "rotated frame."
+if SET_FINAL_ORIGIN_PENTRACK:
 
-file = 'original data'
+    comment = "This data is interpolated from Takashi's summer 2019 data. The data has been shifted and rotated to,"+\
+        " to match the origin and axes used in PENTrack STL files, as well as interpolated to a rectilinear grid in this " +\
+        "rotated frame."
 
-headerText = f'File: {file}\n' + f'Date created: {date.today().strftime("%d/%m/%Y")}\n'\
-    + 'Units: [cm], [G = 1e-4 T]\n' +f'Offset from original data used: {off_sets} cm\n + \nRotation about z axis: '\
-    + f'{rotation} degrees\n' + f'Resulting total origin shift: {off_setwithRotation} cm\n'\
-    + f'Comments: {comment}\n' + '\t'.join(BField_Names)
+    file = 'original data'
 
-file_save = f"map_referencedPENTrack_interp{NL}"
-if CutCorners:
-    file_save = file_save + "_cutCorners"
-    comment = comment + " The corners of this grid outside the original data edges have also been set to 0."
+    headerText = f'File: {file}\n' + f'Date created: {date.today().strftime("%d/%m/%Y")}\n'\
+        + 'Units: [cm], [G = 1e-4 T]\n' +f'Offset from original data used: {off_sets} cm\n + \nRotation about z axis: '\
+        + f'{rotation} degrees\n' + f'Resulting total origin shift: {off_setwithRotation} cm\n'\
+        + f'Comments: {comment}\n' + '\t'.join(BField_Names)
+
+    file_save = f"map_referencedPENTrack_interp{NL}"
+    if CutCorners:
+        file_save = file_save + "_cutCorners"
+        comment = comment + " The corners of this grid outside the original data edges have also been set to 0."
+
+else:
+    comment = "This data is interpolated from Takashi's summer 2019 data. The data has been shifted"+\
+        " so the MSR is the origin, as well as interpolated."
+
+    file = 'original data'
+
+    headerText = f'File: {file}\n' + f'Date created: {date.today().strftime("%d/%m/%Y")}\n'\
+        + 'Units: [cm], [G = 1e-4 T]\n' +f'Offset from original data used: {off_sets} cm\n + \nRotation about z axis: '\
+        + f'{rotation} degrees\n' + f'Resulting total origin shift: {off_setwithRotation} cm\n'\
+        + f'Comments: {comment}\n' + '\t'.join(BField_Names)
+
+    file_save = f"map_referencedMSR_interp{NL}"
+    # file_save = f"map_referencedMSR_interpCUT{NL}"
+
+    if CutCorners:
+        file_save = file_save + "_cutCorners"
+        comment = comment + " The corners of this grid outside the original data edges have also been set to 0."
 
 print(f"Saving file: ./data_export/{file_save}.txt")
 

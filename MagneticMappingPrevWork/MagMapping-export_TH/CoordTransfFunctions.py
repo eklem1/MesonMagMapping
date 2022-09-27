@@ -224,62 +224,136 @@ def rotateBData(df_data, origin, angle):
     
     return df_data_rot
 
-def FixOffset(df_BField_data, plot=False, alpha=.01):
+
+def refToMSR(data_T, center_T):
+    """    
+    Makes the center of the MSR be (0,0,0), and x parallel to the guide going into the MSR,
+    y perpendicular to this.
+    Input:
+        data_T - data output from Takashi's file data_export.py, imported as a df.
+        center_T - the center of this data (0,0,0)
+    Returns:
+        center, corners, data_transf, MSR_center
+        all in cm
+    """
+
+    #Using the center of the MSR that Tony marked for me
+    x_off = 51.7 # cm #deltaX of C_MSR to C_T
+
+    y_off = + 0 # cm #as the MSR center is already aligned with C_T
+
+    z_off = + 16.3 # cm #vertical center of the MSR has changed in designs by this much, based off prev. distance to concrete floor
+    
+    center = np.array([center_T[0]+x_off, center_T[1]+y_off, center_T[2]+z_off])
+
+    MSR_center = np.array([0,0,0])
+    
+    data_transf = data_T.copy()
+
+    data_transf['x'] += x_off
+    data_transf['y'] += y_off
+    data_transf['z'] += z_off
+    
+    corners = getCorners(data_transf)
+    
+    return center, corners, data_transf, MSR_center
+
+def FixOffset(df_BField_data, plot=False, alpha=.01, PEN_origin=True):
    
     center_T = np.array([0, 0, 0]) #our intial origin
     data_T = df_BField_data[["x", "y", "z", "B_x", "B_y", "B_z"]] #original data
 
     #there might be another rotation to do here, as the grid used to take this data is
-    #not exactly straight with the sides of the MSR
+    #not exactly straight with the sides of the MSR - meh, it's pretty close to straight
 
-    #getting the correct shift to use in PENtrack, but not the coordinate rotation
-    center_PEN_notRot, corners_PEN_notRot, data_PEN_notRot, MSR_center_PEN_notRot = refToPENTrack(data_T, center_T)
+    if PEN_origin: #use the SCM as the origin with the axes aligned to the pre SCM guides
 
-    off_sets = center_PEN_notRot #how much the old origin has shifted
-    O_PEN_notRot =  np.array([0, 0, 0]) #the new origin to rotate about
+        #getting the correct shift to use in PENtrack, but not the coordinate rotation
+        center_PEN_notRot, corners_PEN_notRot, data_PEN_notRot, MSR_center_PEN_notRot = refToPENTrack(data_T, center_T)
 
-    data1 = [center_PEN_notRot, corners_PEN_notRot, data_PEN_notRot, MSR_center_PEN_notRot, O_PEN_notRot]
-    
-    rotationAngle = -20 - 90 #20 degree switch from Y, plus swapping the x and y coords
-    
-    #apply the rotation to both the position and the B field components
-    data_PEN = rotateBData(data_PEN_notRot.copy(), O_PEN_notRot, rotationAngle)
-    center_PEN = rotate3D(center_PEN_notRot.T, origin=O_PEN_notRot, degrees=rotationAngle).T
-    corners_PEN = rotate3D(corners_PEN_notRot.T, origin=O_PEN_notRot, degrees=rotationAngle).T
-    MSR_center_PEN = rotate3D(MSR_center_PEN_notRot.T, origin=O_PEN_notRot, degrees=rotationAngle).T
-    O_PEN = O_PEN_notRot
+        off_sets = center_PEN_notRot #how much the old origin has shifted
+        O_PEN_notRot =  np.array([0, 0, 0]) #the new origin to rotate about
 
-    data_return = [center_PEN, corners_PEN, data_PEN, MSR_center_PEN, O_PEN]
-
-    data_PEN_m = data_PEN.copy()
-    data_PEN_m[['x', 'y', 'z']] = data_PEN_m[['x', 'y', 'z']]/100
-
-    # print(off_sets, MSR_center_PEN)
-    data2 = [center_PEN/100, corners_PEN/100, data_PEN_m, MSR_center_PEN/100, O_PEN/100]
-
-    #need to pad data to get a rectilinear grid
-
-    if plot:
-        fig = plt.figure(figsize=(11, 5))
-        ax1 = fig.add_subplot(1, 2, 1, projection='3d')
-        ax2 = fig.add_subplot(1, 2, 2, projection='3d')
-
-        plotMapping(ax1, data1, title="PENTrack origin, pre rotation", view=4)
-        B1 = np.sqrt(data1[2]['B_x']**2 + data1[2]['B_y']**2 + data1[2]['B_z']**2 )*100 #muT
-        Q = ax1.scatter(data1[2]['x'], data1[2]['y'], data1[2]['z'],c=B1, s=1, alpha=alpha, cmap=cm.plasma)
-
-        plotMapping(ax2, data2, title="PENTrack frame", view=4, angle=rotationAngle, units="m", STLs=False, legend=False)
-
-        B2 = np.sqrt(data2[2]['B_x']**2 + data2[2]['B_y']**2 + data2[2]['B_z']**2 )*100 #muT
-        Q = ax2.scatter(data2[2]['x'], data2[2]['y'], data2[2]['z'],c=B2, s=1, alpha=alpha, cmap=cm.plasma)
-
-        # [left, bottom, width, height] 
-        cax = fig.add_axes([ax2.get_position().x1+0.04, ax2.get_position().y0, 0.02, ax1.get_position().y1-ax1.get_position().y0])
-
-        cbar = fig.colorbar(Q, label='$\mathsf{|B|\,(\mu T)}$', cax=cax)
-        plt.subplots_adjust(wspace=0.0)
-        plt.show() 
+        data1 = [center_PEN_notRot, corners_PEN_notRot, data_PEN_notRot, MSR_center_PEN_notRot, O_PEN_notRot]
         
-    
-    return data_PEN, off_sets, rotationAngle, center_PEN, data_return
+        rotationAngle = -20 - 90 #20 degree switch from Y, plus swapping the x and y coords
+        
+        #apply the rotation to both the position and the B field components
+        data_PEN = rotateBData(data_PEN_notRot.copy(), O_PEN_notRot, rotationAngle)
+        center_PEN = rotate3D(center_PEN_notRot.T, origin=O_PEN_notRot, degrees=rotationAngle).T
+        corners_PEN = rotate3D(corners_PEN_notRot.T, origin=O_PEN_notRot, degrees=rotationAngle).T
+        MSR_center_PEN = rotate3D(MSR_center_PEN_notRot.T, origin=O_PEN_notRot, degrees=rotationAngle).T
+        O_PEN = O_PEN_notRot
+
+        data_return = [center_PEN, corners_PEN, data_PEN, MSR_center_PEN, O_PEN]
+
+        data_PEN_m = data_PEN.copy()
+        data_PEN_m[['x', 'y', 'z']] = data_PEN_m[['x', 'y', 'z']]/100
+
+        # print(off_sets, MSR_center_PEN)
+        data2 = [center_PEN/100, corners_PEN/100, data_PEN_m, MSR_center_PEN/100, O_PEN/100]
+
+        data = data_PEN
+        centerShift = center_PEN
+
+
+        if plot:
+            fig = plt.figure(figsize=(11, 5))
+            ax1 = fig.add_subplot(1, 2, 1, projection='3d')
+            ax2 = fig.add_subplot(1, 2, 2, projection='3d')
+
+            plotMapping(ax1, data1, title="PENTrack origin, pre rotation", view=4)
+            B1 = np.sqrt(data1[2]['B_x']**2 + data1[2]['B_y']**2 + data1[2]['B_z']**2 )*100 #muT
+            Q = ax1.scatter(data1[2]['x'], data1[2]['y'], data1[2]['z'],c=B1, s=1, alpha=alpha, cmap=cm.plasma)
+
+            plotMapping(ax2, data2, title="PENTrack frame", view=4, angle=rotationAngle, units="m", STLs=False, legend=False)
+
+            B2 = np.sqrt(data2[2]['B_x']**2 + data2[2]['B_y']**2 + data2[2]['B_z']**2 )*100 #muT
+            Q = ax2.scatter(data2[2]['x'], data2[2]['y'], data2[2]['z'],c=B2, s=1, alpha=alpha, cmap=cm.plasma)
+
+            # [left, bottom, width, height] 
+            cax = fig.add_axes([ax2.get_position().x1+0.04, ax2.get_position().y0, 0.02, ax1.get_position().y1-ax1.get_position().y0])
+
+            cbar = fig.colorbar(Q, label='$\mathsf{|B|\,(\mu T)}$', cax=cax)
+            plt.subplots_adjust(wspace=0.0)
+            plt.show() 
+
+    else: #here we just want the origin to be the center of the MSR, and the axes aligned with F_T
+
+        #getting the correct shift to use in PENtrack, but not the coordinate rotation
+        centerShift_MSR, corners_MSR, data_MSR, MSR_center_origin = refToMSR(data_T, center_T)
+
+        off_sets = centerShift_MSR #how much the old origin has shifted
+        O_PEN_notRot =  np.array([0, 0, 0]) #the new origin to rotate about
+
+        data_return = [centerShift_MSR, corners_MSR, data_MSR, MSR_center_origin, MSR_center_origin]
+        
+        rotationAngle = 0
+
+        data_MSR_m = data_MSR.copy()
+        data_MSR_m[['x', 'y', 'z']] = data_MSR_m[['x', 'y', 'z']]/100 #convert to m
+
+        # print(off_sets, MSR_center_PEN)
+        data2 = [centerShift_MSR/100, corners_MSR/100, data_MSR_m, MSR_center_origin/100, MSR_center_origin/100]
+
+        data = data_MSR
+        centerShift = centerShift_MSR
+
+        if plot:
+            fig = plt.figure(figsize=(11, 5))
+            ax1 = fig.add_subplot(1, 2, 1, projection='3d')
+
+            plotMapping(ax1, data2, title="MSR origin", view=4, units="m", STLs=False, legend=True)
+            B1 = np.sqrt(data2[2]['B_x']**2 + data2[2]['B_y']**2 + data2[2]['B_z']**2 )*100 #muT
+
+            Q = ax1.scatter(data2[2]['x'], data2[2]['y'], data2[2]['z'], c=B1, s=1, alpha=alpha, cmap=cm.plasma)
+
+            # [left, bottom, width, height] 
+            cax = fig.add_axes([ax1.get_position().x1+0.04, ax1.get_position().y0, 0.02, ax1.get_position().y1-ax1.get_position().y0])
+
+            cbar = fig.colorbar(Q, label='$\mathsf{|B|\,(\mu T)}$', cax=cax)
+            plt.subplots_adjust(wspace=0.0)
+            plt.show() 
+        
+    return data, off_sets, rotationAngle, centerShift, data_return
     
