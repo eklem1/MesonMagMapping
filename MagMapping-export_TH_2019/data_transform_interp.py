@@ -28,8 +28,11 @@ import CoordTransfFunctions as ctf
 
 ### Import data ###
 
-SET_FINAL_ORIGIN_PENTRACK = False
 #if set to False, the origin will be the MSR, and no rotation transformation will be preformed
+SET_FINAL_ORIGIN_PENTRACK = True
+#if True, cuts data range to compare with new data
+CUT = False 
+
 
 # This data is in [cm] and [0.1 mT = 1e-4 T = 1 G]
 df1 = pd.read_csv('Mapping_0809_RUN1.csv')
@@ -52,9 +55,6 @@ df_all['B_x'] = -df_all['B_u']
 df_all['B_y'] = -df_all['B_w']
 df_all['B_z'] = -df_all['B_v']  
 
-# df_all.to_csv('data_csv/rawdata_all.csv')
-# df_plat0 = df_all[df_all.z>0]
-# df_plat0.to_csv('data_csv/rawdata_all_z_above_platform.csv')
 
 u_max = np.max(df_all.u)
 v_max = np.max(df_all.v)
@@ -115,7 +115,6 @@ print("Transformed data")
 #prints out the limits of the transformed data, in position and strength of the B field
 ctf.Limits(df_BField_data_fixed)
 
-CUT = False #cuts data range to compare with new data
 if CUT:
     
     # mins: x      -90.100000 max: x    119.109390

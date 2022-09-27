@@ -1,0 +1,7 @@
+#file types to ignore
+.pyc
+.DS_Store
+
+#directories to ignore
+*/__pycache__/
+*.ipynb_checkpoints/

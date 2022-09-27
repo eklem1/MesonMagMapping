@@ -19,7 +19,7 @@ from matplotlib import cm
 # from datetime import date
 import sys
 import os
-sys.path.insert(1, '../../PENTrackAnalysis/')
+sys.path.insert(1, '../PrettyPlotTools/')
 import ParticlePlottingFunctions as ppf
 
 def Limits(data):
@@ -134,7 +134,7 @@ def plotMapping(ax, data, title, units="cm", view=0, angle=0, STLs=False, legend
         
         if STLs:
             # #loads all the file I have in this folder as STLs
-            STLpath = '../../PENTrackAnalysis/STLsToGraph'
+            STLpath = '../PrettyPlotTools/STLsToGraph'
             stl_array = os.listdir(STLpath)
 
             for STLfile in stl_array:

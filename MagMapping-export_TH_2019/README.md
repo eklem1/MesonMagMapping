@@ -5,7 +5,7 @@ The orginal measurements were taken on a grid in 40 cm intervals for 3 different
 
 I would like to use this data as a starting point for my simulations of the adiabatic paramter in the UCN guiding tubes to use in the design of the guiding fields.
 
-However, to use this data in a [PENTrack simulation](https://github.com/eklem1/Guides_nEDMsensitivity), a different coordinate system is needed, which we will call $F_P$, as well as the data file needs to be in a specified format. This was worked out in [PositionCalibration.ipynb](https://github.com/eklem1/UCN_work/blob/master/MagneticMappingPrevWork/MagMapping-export_TH/PositionCalibration.ipynb). The final code to fully process Takashi's raw data to the text files that can be used in PENTrack is in [data_transform_interp.py](https://github.com/eklem1/UCN_work/blob/master/MagneticMappingPrevWork/MagMapping-export_TH/data_transform_interp.py), which I have updated from Takashi's previous version.
+However, to use this data in a [PENTrack simulation](https://github.com/eklem1/Guides_nEDMsensitivity), a different coordinate system is needed, which we will call $F_P$, as well as the data file needs to be in a specified format. This was worked out in [PositionCalibration.ipynb](https://github.com/eklem1/MesonMagMapping/tree/master/MagMapping-export_TH_2019/PositionCalibration.ipynb). The final code to fully process Takashi's raw data to the text files that can be used in PENTrack is in [data_transform_interp.py](https://github.com/eklem1/MesonMagMapping/tree/master/MagMapping-export_TH_2019/data_transform_interp.py), which I have updated from Takashi's previous version.
 
 ## Summer 2019 Mapping Overview
 

@@ -17,9 +17,9 @@ Data files for Mapping on top of the base with the cyclotron on, done on the aft
 |                             |    **Datetime** | Date and time of data                                                                                                | format='%Y%m%d_%H%M%S' |   |   |   |   |   |
 |                             |   **UNIX_time** |                                                                                                                      |                        |   |   |   |   |   |
 |                             |     **LV_time** |                                                                                                                      |                        |   |   |   |   |   |
-|                             |        **FG1x** | Static fluxgate #1, 3 axis readings                                                                                  | $\muT$                 |   |   |   |   |   |
-|                             |        **FG2x** | Static fluxgate #2, 3 axis readings                                                                                  | $\muT$                 |   |   |   |   |   |
-|                             |        **FG3x** | Static fluxgate #3, 3 axis readings                                                                                  | $\muT$                 |   |   |   |   |   |
+|                             |        **FG1x** | Static fluxgate #1, 3 axis readings                                                                                  | $\mu T$                 |   |   |   |   |   |
+|                             |        **FG2x** | Static fluxgate #2, 3 axis readings                                                                                  | $\mu T$                 |   |   |   |   |   |
+|                             |        **FG3x** | Static fluxgate #3, 3 axis readings                                                                                  | $\mu T$                 |   |   |   |   |   |
 
 
 For offset explaination see (file on Plone)
