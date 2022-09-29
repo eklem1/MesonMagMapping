@@ -90,9 +90,9 @@ else: # for adding together after interpolation
 for df_data in dataSets:
 
     if CUT: #setting the limits of the interpolated data
-        x_min, x_max= -90.100, 119.109
-        z_min, z_max= -152.3023, -72.2037
-        y_min, y_max= -151.385, 8.62380
+        x_min, x_max = -90.1, 123.60939 
+        y_min, y_max = -174.71133, -94.61279 
+        z_min, z_max = -150.75165, 9.257800000000003
         print("Cut data")
     else:
         x_min, x_max= np.min(df_data.x), np.max(df_data.x)

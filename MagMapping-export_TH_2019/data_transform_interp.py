@@ -31,7 +31,7 @@ import CoordTransfFunctions as ctf
 #if set to False, the origin will be the MSR, and no rotation transformation will be preformed
 SET_FINAL_ORIGIN_PENTRACK = False
 #if True, cuts data range to compare with new data
-CUT = False 
+CUT = True 
 
 
 # This data is in [cm] and [0.1 mT = 1e-4 T = 1 G]
@@ -125,9 +125,12 @@ df_BField_data_fixed['B_z'] = df_BField_data_fixed['B_z'] * 100
 
 # copied from plot_simple_cut_horizontal.py for interpolation
 if CUT: #setting the limits of the interpolated data
-    x_min, x_max= -90.100, 119.109
-    z_min, z_max= -152.3023, -72.2037
-    y_min, y_max= -151.385, 8.62380
+    # x_min, x_max= -90.100, 119.109
+    # z_min, z_max= -152.3023, -72.2037
+    # y_min, y_max= -151.385, 8.62380
+    x_min, x_max = -90.1, 123.60939 
+    y_min, y_max = -174.71133, -94.61279 
+    z_min, z_max = -150.75165, 9.257800000000003
     print("Cut data")
 else:
     x_min, x_max= np.min(df_BField_data_fixed.x), np.max(df_BField_data_fixed.x)
