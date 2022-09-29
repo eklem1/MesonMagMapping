@@ -27,16 +27,17 @@ import CoordTransfFunctions_fall as ctf
 #if set to False, the origin will be the MSR, and no rotation transformation will be preformed
 SET_FINAL_ORIGIN_PENTRACK = False #not currently doing anything
 #if True, cuts data range to compare with new data
-CUT = False 
+CUT = True 
+MergeTOGETHER = True
 
 
 ### Import data ###
 
 # This data is in [cm] and [1 muT = 1e-6 T]
-dfRed = pd.read_csv('Sept23_data/20220923_153158_Red_RUN1.csv')
+dfRed = pd.read_csv('Sept23_data/20220923_153158_Red_RUN1_cor.csv')
 dfRed['datetime'] = pd.to_datetime(dfRed['datetime'], format='%Y%m%d_%H%M%S')
 
-dfGreen = pd.read_csv('Sept23_data/20220923_170313_Green_RUN3.csv')
+dfGreen = pd.read_csv('Sept23_data/20220923_170313_Green_RUN3_cor.csv')
 dfGreen['datetime'] = pd.to_datetime(dfGreen['datetime'], format='%Y%m%d_%H%M%S')
 
 #matching up the correct axes of the fluxgate, as it was not placed in the 
@@ -73,21 +74,7 @@ ctf.Limits(df_BField_data_fixed_red)
 ### Add data together ### do here?
 # Now the properly orientated data can be combined
 
-df_BField_data_tryTogether = df_BField_data_fixed_red.append(df_BField_data_fixed_green)
-
-if CUT:
-    x_cut_min = -90.100
-    x_cut_max = 119.109
-    y_cut_min = -152.3023
-    y_cut_max = -72.2037
-    z_cut_min = -151.385
-    z_cut_max = 8.62380
-
-    df_BField_data_tryTogether = df_BField_data_tryTogether[(df_BField_data_tryTogether.x <= x_cut_max) & (df_BField_data_tryTogether.x >= x_cut_min)
-                        & (df_BField_data_tryTogether.y <= y_cut_max) & (df_BField_data_tryTogether.y >= y_cut_min)
-                        & (df_BField_data_tryTogether.z <= z_cut_max) & (df_BField_data_tryTogether.z >= z_cut_min)] # select the subset of the data frame
-    print("Cut data")
-    ctf.Limits(df_BField_data_tryTogether)
+df_BField_data_tryTogether = df_BField_data_fixed_red.append(df_BField_data_fixed_green) 
 
 ### Interpolation ###
 
@@ -95,21 +82,22 @@ if CUT:
 
 df_BField_data_fixed = pd.DataFrame()
 
-#interpolating the two sets together
-dataSets = [df_BField_data_tryTogether]
-
-#for adding together after interpolation
-# dataSets = [df_BField_data_fixed_red, df_BField_data_fixed_green]
+if MergeTOGETHER: #interpolating the two sets together
+    dataSets = [df_BField_data_tryTogether]
+else: # for adding together after interpolation
+    dataSets = [df_BField_data_fixed_red, df_BField_data_fixed_green]
 
 for df_data in dataSets:
 
-    # x_min, x_max= np.min(df_data.x), np.max(df_data.x)
-    # z_min, z_max= np.min(df_data.z), np.max(df_data.z)
-    # y_min, y_max= np.min(df_data.y), np.max(df_data.y)
-
-    x_min, x_max= -90.100, 119.109
-    z_min, z_max= -152.3023, -72.2037
-    y_min, y_max= -151.385, 8.62380
+    if CUT: #setting the limits of the interpolated data
+        x_min, x_max= -90.100, 119.109
+        z_min, z_max= -152.3023, -72.2037
+        y_min, y_max= -151.385, 8.62380
+        print("Cut data")
+    else:
+        x_min, x_max= np.min(df_data.x), np.max(df_data.x)
+        z_min, z_max= np.min(df_data.z), np.max(df_data.z)
+        y_min, y_max= np.min(df_data.y), np.max(df_data.y)
 
     NL = 50 # this defines the number of points for interpolation, default is 50
 
@@ -184,7 +172,18 @@ headerText = f'File: {file}\n' + f'Date created: {date.today().strftime("%d/%m/%
     + f'{rotation} degrees\n' + f'Resulting total origin shift: {off_setwithRotation} cm\n'\
     + f'Comments: {comment}\n' + '\t'.join(BField_Names)
 
-file_save = f"map_referencedMSR_fall2022_togetherCUT_interp{NL}"
+#putting together a nice name for the file
+file_save = f"map_referencedMSR_fall2022"
+
+if MergeTOGETHER: #interpolating the two sets together
+    file_save = file_save + "_together"
+else: # for adding together after interpolation
+    file_save = file_save + "_seperate"
+
+if CUT:
+    file_save = file_save + "_CUT"
+
+file_save = file_save + f"_interp{NL}"
 
 print(f"Saving file: ./data_export/{file_save}.txt")
 

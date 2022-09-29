@@ -115,26 +115,6 @@ print("Transformed data")
 #prints out the limits of the transformed data, in position and strength of the B field
 ctf.Limits(df_BField_data_fixed)
 
-if CUT:
-    
-    # mins: x      -90.100000 max: x    119.109390
-    # y    -152.302330              y     -72.203790
-    # z     -151.385650             z        8.623800
-
-    x_cut_min = -90.100
-    x_cut_max = 119.109
-    y_cut_min = -152.3023
-    y_cut_max = -72.2037
-    z_cut_min = -151.385
-    z_cut_max = 8.62380
-
-    df_BField_data_fixed = df_BField_data_fixed[(df_BField_data_fixed.x <= x_cut_max) & (df_BField_data_fixed.x >= x_cut_min)
-                        & (df_BField_data_fixed.y <= y_cut_max) & (df_BField_data_fixed.y >= y_cut_min)
-                        & (df_BField_data_fixed.z <= z_cut_max) & (df_BField_data_fixed.z >= z_cut_min)] # select the subset of the data frame
-
-    print("Cut data")
-    ctf.Limits(df_BField_data_fixed)
-
 #conversion to muT - if you want it
 df_BField_data_fixed['B_x'] = df_BField_data_fixed['B_x'] * 100
 df_BField_data_fixed['B_y'] = df_BField_data_fixed['B_y'] * 100
@@ -144,14 +124,15 @@ df_BField_data_fixed['B_z'] = df_BField_data_fixed['B_z'] * 100
 ### Interpolation ###
 
 # copied from plot_simple_cut_horizontal.py for interpolation
-
-# x_min, x_max= np.min(df_BField_data_fixed.x), np.max(df_BField_data_fixed.x)
-# z_min, z_max= np.min(df_BField_data_fixed.z), np.max(df_BField_data_fixed.z)
-# y_min, y_max= np.min(df_BField_data_fixed.y), np.max(df_BField_data_fixed.y)
-
-x_min, x_max= -90.100, 119.109
-z_min, z_max= -152.3023, -72.2037
-y_min, y_max= -151.385, 8.62380
+if CUT: #setting the limits of the interpolated data
+    x_min, x_max= -90.100, 119.109
+    z_min, z_max= -152.3023, -72.2037
+    y_min, y_max= -151.385, 8.62380
+    print("Cut data")
+else:
+    x_min, x_max= np.min(df_BField_data_fixed.x), np.max(df_BField_data_fixed.x)
+    z_min, z_max= np.min(df_BField_data_fixed.z), np.max(df_BField_data_fixed.z)
+    y_min, y_max= np.min(df_BField_data_fixed.y), np.max(df_BField_data_fixed.y)
 
 NL = 50 # this defines the number of points for interpolation, default is 50
 
@@ -301,12 +282,16 @@ else:
         + f'{rotation} degrees\n' + f'Resulting total origin shift: {off_setwithRotation} cm\n'\
         + f'Comments: {comment}\n' + '\t'.join(BField_Names)
 
-    # file_save = f"map_referencedMSR_interp{NL}"
-    file_save = f"map_referencedMSR_interpCUT{NL}"
+    file_save = f"map_referencedMSR_interp"
 
-    if CutCorners:
+    if CUT:
+        file_save = file_save + "_CUT"
+
+    if CutCorners: #interpolating the two sets together
         file_save = file_save + "_cutCorners"
         comment = comment + " The corners of this grid outside the original data edges have also been set to 0."
+
+    file_save = file_save + f"_interp{NL}"
 
 print(f"Saving file: ./data_export/{file_save}.txt")
 
