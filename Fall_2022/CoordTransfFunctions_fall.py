@@ -232,23 +232,23 @@ def FixOffset(df_BField_data, plot=False, alpha=.01, POSITION='red'):
 
     if POSITION=='red': #here we just want the origin to be the center of the MSR, and the axes aligned with F_T
 
-        #reference point used, relative to center of MSR (but z of this origin was on the floor)
+        #reference point used (L'), relative to center of MSR (but z of this origin was on the floor)
         L_red = np.array([ 813.5939,   -1636.6933,  751.818])/10 #cm
 
         #getting the correct shift to use in PENtrack, but not the coordinate rotation
         centerShift_MSR, corners_MSR, data_MSR, MSR_center_origin = refToMSR_point(data_T, center_T, L_red)
     elif POSITION=='green':
-        #reference point used, relative to center of MSR (but z of this origin was on the floor)
+        #reference point used (L), relative to center of MSR (but z of this origin was on the floor)
         L_green = np.array([-812.072,    -1635.7079 , 751.7235])/10 #cm
 
         #getting the correct shift to use in PENtrack, but not the coordinate rotation
         centerShift_MSR, corners_MSR, data_MSR, MSR_center_origin = refToMSR_point(data_T, center_T, L_green)
-    # elif POSITION='stairs':
-    #     #reference point used, relative to center of MSR (but z of this origin was on the floor)
-    #     L_red = np.array([ 813.5939,   -1636.6933,  751.818])/10 #cm
+    elif POSITION=='stairs':
+        #reference point used, marked on the front of the stairs, relative to center of MSS
+        stairFace_mark = np.array([ -955.6688,   -2621.2209,  1553.2774])/10 #cm
 
-    #     #getting the correct shift to use in PENtrack, but not the coordinate rotation
-    #     centerShift_MSR, corners_MSR, data_MSR, MSR_center_origin = refToMSR_point(data_T, center_T, L_red)
+        #getting the correct shift to use in PENtrack, but not the coordinate rotation
+        centerShift_MSR, corners_MSR, data_MSR, MSR_center_origin = refToMSR_point(data_T, center_T, stairFace_mark)
 
     off_sets = centerShift_MSR #how much the old origin has shifted
     O_PEN_notRot =  np.array([0, 0, 0]) #the new origin to rotate about
