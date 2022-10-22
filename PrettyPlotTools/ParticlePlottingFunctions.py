@@ -1,10 +1,14 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import uproot as up
+import pandas as pd
 from mpl_toolkits.mplot3d import Axes3D
 from stl import mesh
 from mpl_toolkits import mplot3d
 import scipy.stats as stats
+from matplotlib import cm
+from matplotlib.ticker import LinearLocator, FormatStrFormatter
+from matplotlib.ticker import FormatStrFormatter
+import seaborn as sns
 
 '''
 A function to graph the 3D position, in a 3D scatter plot as well as a view
@@ -141,6 +145,7 @@ def plot3D_geoColor(x, y, z, geo, t=None, startPlot=True, endPlot=True, label=""
     else:
         #if it's not the end of the graph, return the figure objects
         return [fig, ax1]
+    
 '''
 returns the coorsponding geometry label and set color for a particular PENTrack
 geometry tag.
@@ -230,3 +235,297 @@ def graphSTL(stlFile, axes, edgecolor="black", facecolor=None, linewidth=0.1, a=
     item.set_edgecolor(edgecolor)
     item.set_facecolor(facecolor)
     axes.add_collection3d(item)
+    
+    
+    
+'''
+Plots all the data in 3D, with each component of the field plotted on a different graph
+with a different colorbar.
+Data should be a pandas df
+'''
+def PlotComponents(data, Compare=False, fsize=(20,6), lims=None, title=None, Sample=None):
+    
+    fig = plt.figure(figsize=fsize)
+    ax1 = fig.add_subplot(1, 3, 1, projection='3d')
+    ax2 = fig.add_subplot(1, 3, 2, projection='3d')
+    ax3 = fig.add_subplot(1, 3, 3, projection='3d')
+    fig.suptitle(title)     
+    
+    if lims is not None:
+        Xvmin, Xvmax = lims[0]
+        Yvmin, Yvmax = lims[1]
+        Zvmin, Zvmax = lims[2]
+    else:
+        Xvmin, Xvmax = [None,None]
+        Yvmin, Yvmax = [None,None]
+        Zvmin, Zvmax = [None,None]
+
+    axes = [ax1, ax2, ax3]
+    
+    if Sample is not None:
+        data = data.sample(Sample)
+        s_set=plt.rcParams['lines.markersize'] ** 2
+    else:
+        s_set=.5
+    
+    if Compare:
+        Q_19 = ax1.scatter(data['x'], data['y'], data['z'],c=data['dB_x'], s=s_set, 
+                           alpha=1, cmap=cm.PiYG, vmin=Xvmin, vmax=Xvmax)
+        cbar_19 = fig.colorbar(Q_19, label='$dB_x (\mu T)$', ax=ax1, pad=0.1)
+        ax1.set_title("$dB_x$")
+
+        Q_22 = ax2.scatter(data['x'], data['y'], data['z'],c=data['dB_y'], s=s_set, 
+                           alpha=1, cmap=cm.PRGn, vmin=Yvmin, vmax=Yvmax)
+        cbar_22 = fig.colorbar(Q_22, label='$dB_y (\mu T)$', ax=ax2, pad=0.1)
+        ax2.set_title("$dB_y$")
+
+        Q_19 = ax3.scatter(data['x'], data['y'], data['z'],c=data['dB_z'], s=s_set,
+                           alpha=1, cmap=cm.PuOr, vmin=Zvmin, vmax=Zvmax)
+        cbar_19 = fig.colorbar(Q_19, label='$dB_z (\mu T)$', ax=ax3, pad=0.1)
+        ax3.set_title("$dB_z$")
+
+    else:
+
+        Q_19 = ax1.scatter(data['x'], data['y'], data['z'],c=data['B_x'], s=s_set, 
+                           alpha=1, cmap=cm.PiYG)
+        
+        cbar_19 = fig.colorbar(Q_19, label='$B_x (\mu T)$', ax=ax1, pad=0.1)
+        ax1.set_title("$B_x$")
+
+        Q_22 = ax2.scatter(data['x'], data['y'], data['z'],c=data['B_y'], s=s_set,
+                           alpha=1, cmap=cm.PRGn)
+        cbar_22 = fig.colorbar(Q_22, label='$B_y (\mu T)$', ax=ax2, pad=0.1)
+        ax2.set_title("$B_y$")
+
+        Q_19 = ax3.scatter(data['x'], data['y'], data['z'],c=data['B_z'], s=s_set,
+                           alpha=1, cmap=cm.PuOr)
+        cbar_19 = fig.colorbar(Q_19, label='$B_z (\mu T)$', ax=ax3, pad=0.1)
+        ax3.set_title("$B_z$")
+        
+    for a in axes:
+#         a.view_init(elev=30., azim=-5)
+        a.set_xlabel('x [cm]')
+        a.set_ylabel('y [cm]', labelpad=8)
+        a.set_zlabel('z [cm]', labelpad=8)
+        
+    fig.tight_layout(pad=1)#,rect=[0, 0, 1, 0.99])# plt.colorbar(sc, ax=ax4)
+    return
+        
+''''
+Plots a slice of the data in 3D, with each component of the field plotted on a 
+different graph with a different colorbar.
+Which ever entry of slicer=[x,y,z] is what the slice will be done on. The value must be exact for now
+'''
+def PlotComponentsSlice(data, slicer=[None, None, None], Compare=False, fsize=(20,6), lims=None, title=None):
+    
+    # ### Producing the plots
+    plt.rcParams['font.size'] = '12'
+    fig = plt.figure(facecolor='white', figsize=(14,5))
+
+    ax1 = fig.add_subplot(131, projection='3d')
+    ax2 = fig.add_subplot(132, projection='3d')
+    ax3 = fig.add_subplot(133, projection='3d')
+    
+    if lims is not None:
+        Xvmin, Xvmax = lims[0]
+        Yvmin, Yvmax = lims[1]
+        Zvmin, Zvmax = lims[2]
+    else:
+        Xvmin, Xvmax = [None,None]
+        Yvmin, Yvmax = [None,None]
+        Zvmin, Zvmax = [None,None]
+
+    for axi in [ax1, ax2, ax3]:
+        axi.view_init(elev=30., azim=125) # you may need to adjsut it for better data visibility   
+
+        axi.set_xticklabels(axi.get_xticks(),  rotation=50,
+                        verticalalignment='baseline',
+                        horizontalalignment='right')
+        axi.tick_params(pad=6) 
+        axi.set_yticklabels(axi.get_yticks(),  rotation=-25,
+                        verticalalignment='baseline',
+                        horizontalalignment='left')    
+
+        axi.xaxis.set_major_formatter(FormatStrFormatter('%d'))
+        axi.yaxis.set_major_formatter(FormatStrFormatter('%d'))
+        
+        if slicer[0] is not None:
+            axi.set_xlabel('$\mathsf{z}$ (cm)', rotation=7, labelpad=10)
+            axi.set_ylabel('$\mathsf{y}$ (cm)',  labelpad=10)
+        elif slicer[1] is not None:
+            axi.set_xlabel('$\mathsf{x}$ (cm)', rotation=7, labelpad=10)
+            axi.set_ylabel('$\mathsf{z}$ (cm)',  labelpad=10)
+        elif slicer[2] is not None:
+            axi.set_xlabel('$\mathsf{x}$ (cm)', rotation=7, labelpad=10)
+            axi.set_ylabel('$\mathsf{y}$ (cm)',  labelpad=10)
+            
+    if slicer[0] is not None:
+        cols = np.array(['z', 'y'])
+        mask = data['x'].isin(slicer)
+    elif slicer[1] is not None:
+        cols = np.array(['x', 'z'])
+        mask = data['y'].isin(slicer)
+            
+    elif slicer[2] is not None:
+        cols = np.array(['x', 'y'])
+        mask = data['z'].isin(slicer)
+            
+    col_Name = np.array(['a', 'b'])
+    
+    if Compare:
+        cols = np.append(cols, ['dB_x', 'dB_y', 'dB_z'])
+        col_Name = np.append(col_Name, ['dB_x', 'dB_y', 'dB_z'])
+    else:
+        cols = np.append(cols, ['B_x', 'B_y', 'B_z'])
+        col_Name = np.append(col_Name, ['B_x', 'B_y', 'B_z'])
+        
+    plot_data = pd.DataFrame(data=data[cols]).loc[mask]
+    plot_data.columns = col_Name
+
+    if Compare:
+        
+        Q_19 = ax1.scatter(plot_data['a'], plot_data['b'], plot_data['dB_x'],c=plot_data['dB_x'], s=1,
+                           alpha=1, cmap=cm.PiYG, vmin=Xvmin, vmax=Xvmax)
+        # cbar_19 = fig.colorbar(Q_19, label='$dB_x (\mu T)$', ax=ax1, pad=0.1)
+        ax1.set_title("$dB_x$")
+
+        Q_22 = ax2.scatter(plot_data['a'], plot_data['b'], plot_data['dB_y'],c=plot_data['dB_y'], s=1, 
+                           alpha=1, cmap=cm.PRGn, vmin=Yvmin, vmax=Yvmax)
+        # cbar_22 = fig.colorbar(Q_22, label='$dB_y (\mu T)$', ax=ax2, pad=0.1)
+        ax2.set_title("$dB_y$")
+
+        Q_19 = ax3.scatter(plot_data['a'], plot_data['b'], plot_data['dB_z'],c=plot_data['dB_z'], s=1, 
+                           alpha=1, cmap=cm.PuOr, vmin=Zvmin, vmax=Zvmax)
+        # cbar_19 = fig.colorbar(Q_19, label='$dB_z (\mu T)$', ax=ax3, pad=0.1)
+        ax3.set_title("$dB_z$")
+
+    else:
+         #  'Perceptually Uniform Sequential',
+             # ['viridis', 'plasma', 'inferno', 'magma', 'cividis']
+        Q_19 = ax1.scatter(plot_data['a'], plot_data['b'], plot_data['B_x'],c=plot_data['B_x'], s=1, 
+                           alpha=1, cmap=cm.viridis)
+        
+        # cbar_19 = fig.colorbar(Q_19, label='$B_x (\mu T)$', ax=ax1, pad=0.1)
+        ax1.set_title("$B_x$")
+
+        Q_22 = ax2.scatter(plot_data['a'], plot_data['b'], plot_data['B_y'],c=plot_data['B_y'], s=1, 
+                           alpha=1, cmap=cm.inferno)
+        # cbar_22 = fig.colorbar(Q_22, label='$B_y (\mu T)$', ax=ax2, pad=0.1)
+        ax2.set_title("$B_y$")
+
+        Q_19 = ax3.scatter(plot_data['a'], plot_data['b'], plot_data['B_z'],c=plot_data['B_z'], s=1, 
+                           alpha=1, cmap=cm.cividis)
+        # cbar_19 = fig.colorbar(Q_19, label='$B_z (\mu T)$', ax=ax3, pad=0.1)
+        ax3.set_title("$B_z$")
+    
+    ax1.set_title('$\mathsf{B_x}$') 
+    ax1.set_zlabel('$\mathsf{B_x\,(\mu T)}$', rotation=180, labelpad=10)
+
+    ax2.set_zlabel('$\mathsf{B_y\,(\mu T)}$', rotation=180, labelpad=10)
+    ax2.set_title('$\mathsf{B_y}$')
+
+    ax3.set_zlabel('$\mathsf{B_z\,(\mu T)}$', rotation=180, labelpad=10)
+    ax3.set_title('$\mathsf{B_z}$')
+
+    fig.suptitle(f'slice at : {slicer} cm')
+    fig.tight_layout(pad=3,rect=[0, 0, 1, 0.99])# plt.colorbar(sc, ax=ax4)
+
+    
+    ''''
+Plots a slice of the data in 2D as a heat map, with each component of the field plotted on a 
+different graph with a different colorbar.
+Which ever entry of slicer=[x,y,z] is what the slice will be done on. The value must be exact for now.
+'''
+def PlotComponentsSliceHeat(data, slicer=[None, None, None], Compare=False, fsize=(20,6), lims=None, title=None):
+    
+    # ### Producing the plots
+    plt.rcParams['font.size'] = '12'
+    fig = plt.figure(facecolor='white', figsize=(14,5))
+
+    ax1 = fig.add_subplot(131)
+    ax2 = fig.add_subplot(132)
+    ax3 = fig.add_subplot(133)
+    
+    if lims is not None:
+        Xvmin, Xvmax = lims[0]
+        Yvmin, Yvmax = lims[1]
+        Zvmin, Zvmax = lims[2]
+    else:
+        Xvmin, Xvmax = [None,None]
+        Yvmin, Yvmax = [None,None]
+        Zvmin, Zvmax = [None,None]
+
+    if slicer[0] is not None:
+        cols = np.array(['z', 'y'])
+        mask = data['x'].isin(slicer)
+    elif slicer[1] is not None:
+        cols = np.array(['x', 'z'])
+        mask = data['y'].isin(slicer)
+            
+    elif slicer[2] is not None:
+        cols = np.array(['x', 'y'])
+        mask = data['z'].isin(slicer)
+            
+    col_Name = np.array(['a', 'b'])
+    
+    if Compare:
+        cols = np.append(cols, ['dB_x', 'dB_y', 'dB_z'])
+        col_Name = np.append(col_Name, ['dB_x', 'dB_y', 'dB_z'])
+    else:
+        cols = np.append(cols, ['B_x', 'B_y', 'B_z'])
+        col_Name = np.append(col_Name, ['B_x', 'B_y', 'B_z'])
+        
+    plot_data = pd.DataFrame(data=data[cols]).loc[mask]
+      
+    plot_data.columns = col_Name
+
+    if Compare:
+               
+        df_B_x = plot_data.pivot_table( index='b', columns='a', values='dB_x')
+        q = sns.heatmap(df_B_x, ax=ax1, xticklabels=10, yticklabels=10, cmap=cm.PiYG, vmin=Xvmin, vmax=Xvmax)
+        
+        df_B_y = plot_data.pivot_table( index='b', columns='a', values='dB_y')
+        q = sns.heatmap(df_B_y, ax=ax2, xticklabels=10, yticklabels=10, cmap=cm.PRGn, vmin=Yvmin, vmax=Yvmax)
+        
+        df_B_z = plot_data.pivot_table( index='b', columns='a', values='dB_z')
+        q = sns.heatmap(df_B_z, ax=ax3, xticklabels=10, yticklabels=10, cmap=cm.PuOr, vmin=Zvmin, vmax=Zvmax)
+        
+        ax1.set_title('$\mathsf{dB_x\, [\mu T]}$') 
+        ax2.set_title('$\mathsf{dB_y\, [\mu T]}$')
+        ax3.set_title('$\mathsf{dB_z\, [\mu T]}$')
+
+    else:
+        df_B_x = plot_data.pivot_table( index='b', columns='a', values='B_x')
+        q = sns.heatmap(df_B_x, ax=ax1, xticklabels=10, yticklabels=10, cmap=cm.viridis, linewidths=0, square=True)
+        
+        df_B_y = plot_data.pivot_table( index='b', columns='a', values='B_y')
+        q = sns.heatmap(df_B_y, ax=ax2, xticklabels=10, yticklabels=10, cmap=cm.inferno, linewidths=0, square=True)
+        
+        df_B_z = plot_data.pivot_table( index='b', columns='a', values='B_z')
+        q = sns.heatmap(df_B_z, ax=ax3, xticklabels=10, yticklabels=10, cmap=cm.cividis, linewidths=0, square=True)
+        
+        ax1.set_title('$\mathsf{B_x\, [\mu T]}$') 
+        ax2.set_title('$\mathsf{B_y\, [\mu T]}$')
+        ax3.set_title('$\mathsf{B_z\, [\mu T]}$')
+
+    for axi in [ax1, ax2, ax3]:
+
+        # format text labels
+        fmt = '{:0.1f}'
+        xticklabels = []
+        for item in axi.get_xticklabels():
+            item.set_text(fmt.format(float(item.get_text())))
+            xticklabels += [item]
+        yticklabels = []
+        for item in axi.get_yticklabels():
+            item.set_text(fmt.format(float(item.get_text())))
+            yticklabels += [item]
+
+        axi.set_xticklabels(xticklabels)
+        axi.set_yticklabels(yticklabels)
+        axi.set_xlabel(f"{cols[0]} [cm]")
+        axi.set_ylabel(f"{cols[1]} [cm]")
+    
+    
+    fig.suptitle(f'{title}, slice at : {slicer} cm')
+    fig.tight_layout(pad=1,rect=[0, 0, 1, 0.99])# plt.colorbar(sc, ax=ax4)
