@@ -1,5 +1,6 @@
 Data files for Mapping on top of the base with the cyclotron on, done from Sept 23 - 27th, 2022. Files marked with \*RUN#.csv hold the grid of fluxgate data. The other file with the corresponding color contain fluxgate data from three static fluxgates montitoring the nearby area as we took data. All distances are in $cm$, and magnetic field readings are in $\mu T$.
-      
+
+# Data (Sept23_data, data_export)
 ## Files
 #### Data runs
 20220923_153158_Red_RUN1.csv - data for red plywood placement  
@@ -43,5 +44,11 @@ Data files for Mapping on top of the base with the cyclotron on, done from Sept 
 |                             |        **FG3x** | Static fluxgate #3, 3 axis readings                                                                                  | $\mu T$                 |
 
 ## Offsets
-For offset explaination see (file on Plone)
+For offset explaination see [Meson Hall Mapping Fall 2022 Set up](https://ucn.triumf.ca/edm/magnetic-shielding/guiding-fields/field-mapping-fall-2022/mapping%20fall%202022%20-1.pdf/view)
  - the offset for y and z are incorrect in the original files, so new files were made, marked with \_cor in the file title with the corrected offsets.
+ 
+# Other folders
+PhotosSept23/ - Photos from the data taking process
+
+SlicedPlots/ - holds png versions of both 2D and 3D slices of all data
+

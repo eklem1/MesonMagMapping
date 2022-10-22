@@ -319,7 +319,7 @@ Which ever entry of slicer=[x,y,z] is what the slice will be done on. The value 
 def PlotComponentsSlice(data, slicer=[None, None, None], Compare=False, fsize=(20,6), lims=None, title=None):
     
     # ### Producing the plots
-    plt.rcParams['font.size'] = '12'
+    # plt.rcParams['font.size'] = '12'
     fig = plt.figure(facecolor='white', figsize=(14,5))
 
     ax1 = fig.add_subplot(131, projection='3d')
@@ -362,13 +362,15 @@ def PlotComponentsSlice(data, slicer=[None, None, None], Compare=False, fsize=(2
     if slicer[0] is not None:
         cols = np.array(['z', 'y'])
         mask = data['x'].isin(slicer)
+        title_slice = f'x = {slicer[0]:.3}'
     elif slicer[1] is not None:
         cols = np.array(['x', 'z'])
         mask = data['y'].isin(slicer)
-            
+        title_slice = f'y = {slicer[1]:.3}'
     elif slicer[2] is not None:
         cols = np.array(['x', 'y'])
         mask = data['z'].isin(slicer)
+        title_slice = f'z = {slicer[2]:.3}'
             
     col_Name = np.array(['a', 'b'])
     
@@ -427,7 +429,7 @@ def PlotComponentsSlice(data, slicer=[None, None, None], Compare=False, fsize=(2
     ax3.set_zlabel('$\mathsf{B_z\,(\mu T)}$', rotation=180, labelpad=10)
     ax3.set_title('$\mathsf{B_z}$')
 
-    fig.suptitle(f'slice at : {slicer} cm')
+    fig.suptitle(f'{title}, slice at {title_slice} cm')
     fig.tight_layout(pad=3,rect=[0, 0, 1, 0.99])# plt.colorbar(sc, ax=ax4)
 
     
@@ -439,7 +441,7 @@ Which ever entry of slicer=[x,y,z] is what the slice will be done on. The value 
 def PlotComponentsSliceHeat(data, slicer=[None, None, None], Compare=False, fsize=(20,6), lims=None, title=None):
     
     # ### Producing the plots
-    plt.rcParams['font.size'] = '12'
+    # plt.rcParams['font.size'] = '12'
     fig = plt.figure(facecolor='white', figsize=(14,5))
 
     ax1 = fig.add_subplot(131)
@@ -458,14 +460,15 @@ def PlotComponentsSliceHeat(data, slicer=[None, None, None], Compare=False, fsiz
     if slicer[0] is not None:
         cols = np.array(['z', 'y'])
         mask = data['x'].isin(slicer)
+        title_slice = f'x = {slicer[0]:.3}'
     elif slicer[1] is not None:
         cols = np.array(['x', 'z'])
         mask = data['y'].isin(slicer)
-            
+        title_slice = f'y = {slicer[1]:.3}'
     elif slicer[2] is not None:
         cols = np.array(['x', 'y'])
         mask = data['z'].isin(slicer)
-            
+        title_slice = f'z = {slicer[2]:.3}'
     col_Name = np.array(['a', 'b'])
     
     if Compare:
@@ -527,5 +530,5 @@ def PlotComponentsSliceHeat(data, slicer=[None, None, None], Compare=False, fsiz
         axi.set_ylabel(f"{cols[1]} [cm]")
     
     
-    fig.suptitle(f'{title}, slice at : {slicer} cm')
+    fig.suptitle(f'{title}, slice at {title_slice} cm')
     fig.tight_layout(pad=1,rect=[0, 0, 1, 0.99])# plt.colorbar(sc, ax=ax4)
