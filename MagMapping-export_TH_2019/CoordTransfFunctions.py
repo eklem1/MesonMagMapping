@@ -318,9 +318,9 @@ def FixOffset(df_BField_data, plot=False, alpha=.01, PEN_origin=True):
             plt.subplots_adjust(wspace=0.0)
             plt.show() 
 
-    else: #here we just want the origin to be the center of the MSR, and the axes aligned with F_T
+    else: #here we just want the origin to be the center of the MSR, as they the axes are already aligned with F_T
 
-        #getting the correct shift to use in PENtrack, but not the coordinate rotation
+        #getting the correct shift to use in PENtrack
         centerShift_MSR, corners_MSR, data_MSR, MSR_center_origin = refToMSR(data_T, center_T)
 
         off_sets = centerShift_MSR #how much the old origin has shifted

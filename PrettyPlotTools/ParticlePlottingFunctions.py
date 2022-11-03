@@ -316,11 +316,11 @@ Plots a slice of the data in 3D, with each component of the field plotted on a
 different graph with a different colorbar.
 Which ever entry of slicer=[x,y,z] is what the slice will be done on. The value must be exact for now
 '''
-def PlotComponentsSlice(data, slicer=[None, None, None], Compare=False, fsize=(20,6), lims=None, title=None):
+def PlotComponentsSlice(data, slicer=[None, None, None], Compare=False, fsize=(14,5), lims=None, title=None):
     
     # ### Producing the plots
     # plt.rcParams['font.size'] = '12'
-    fig = plt.figure(facecolor='white', figsize=(14,5))
+    fig = plt.figure(facecolor='white', figsize=fsize)
 
     ax1 = fig.add_subplot(131, projection='3d')
     ax2 = fig.add_subplot(132, projection='3d')
@@ -336,7 +336,7 @@ def PlotComponentsSlice(data, slicer=[None, None, None], Compare=False, fsize=(2
         Zvmin, Zvmax = [None,None]
 
     for axi in [ax1, ax2, ax3]:
-        axi.view_init(elev=30., azim=125) # you may need to adjsut it for better data visibility   
+        axi.view_init(elev=40., azim=None) # you may need to adjsut it for better data visibility   
 
         axi.set_xticklabels(axi.get_xticks(),  rotation=50,
                         verticalalignment='baseline',
@@ -359,18 +359,34 @@ def PlotComponentsSlice(data, slicer=[None, None, None], Compare=False, fsize=(2
             axi.set_xlabel('$\mathsf{x}$ (cm)', rotation=7, labelpad=10)
             axi.set_ylabel('$\mathsf{y}$ (cm)',  labelpad=10)
             
+    di = 1 #cm
     if slicer[0] is not None:
         cols = np.array(['z', 'y'])
-        mask = data['x'].isin(slicer)
-        title_slice = f'x = {slicer[0]:.3}'
+        # mask = data['x'].isin(slicer)
+        mask = data['x'].between(slicer[0]-di, slicer[0]+di)
+        actualValue = data['x'][mask]
+        title_slice = f'x = {actualValue.iloc[0]:.1f}'
+        checkSlice = len(actualValue.unique())
     elif slicer[1] is not None:
         cols = np.array(['x', 'z'])
-        mask = data['y'].isin(slicer)
-        title_slice = f'y = {slicer[1]:.3}'
+        # mask = data['y'].isin(slicer)
+        mask = data['y'].between(slicer[1]-di, slicer[1]+di)
+        actualValue = data['y'][mask]
+        title_slice = f'y = {actualValue.iloc[0]:.1f}'
+        checkSlice = len(actualValue.unique())
+        
     elif slicer[2] is not None:
         cols = np.array(['x', 'y'])
-        mask = data['z'].isin(slicer)
-        title_slice = f'z = {slicer[2]:.3}'
+        # mask = data['z'].isin(slicer)
+        # search = slicer[2] + 2
+        # print(-search,search)
+        mask = data['z'].between(slicer[2]-di, slicer[2]+di)
+        actualValue = data['z'][mask]
+        title_slice = f'z = {actualValue.iloc[0]:.1f}'
+        checkSlice = len(actualValue.unique())
+        
+    if checkSlice != 1 :
+        print("Warning, either no data was found for that slice value, or multiple layers of points were saved")
             
     col_Name = np.array(['a', 'b'])
     
@@ -420,14 +436,11 @@ def PlotComponentsSlice(data, slicer=[None, None, None], Compare=False, fsize=(2
         # cbar_19 = fig.colorbar(Q_19, label='$B_z (\mu T)$', ax=ax3, pad=0.1)
         ax3.set_title("$B_z$")
     
-    ax1.set_title('$\mathsf{B_x}$') 
     ax1.set_zlabel('$\mathsf{B_x\,(\mu T)}$', rotation=180, labelpad=10)
 
     ax2.set_zlabel('$\mathsf{B_y\,(\mu T)}$', rotation=180, labelpad=10)
-    ax2.set_title('$\mathsf{B_y}$')
 
     ax3.set_zlabel('$\mathsf{B_z\,(\mu T)}$', rotation=180, labelpad=10)
-    ax3.set_title('$\mathsf{B_z}$')
 
     fig.suptitle(f'{title}, slice at {title_slice} cm')
     fig.tight_layout(pad=3,rect=[0, 0, 1, 0.99])# plt.colorbar(sc, ax=ax4)
@@ -442,7 +455,7 @@ def PlotComponentsSliceHeat(data, slicer=[None, None, None], Compare=False, fsiz
     
     # ### Producing the plots
     # plt.rcParams['font.size'] = '12'
-    fig = plt.figure(facecolor='white', figsize=(14,5))
+    fig = plt.figure(facecolor='white', figsize=fsize)
 
     ax1 = fig.add_subplot(131)
     ax2 = fig.add_subplot(132)
@@ -457,18 +470,34 @@ def PlotComponentsSliceHeat(data, slicer=[None, None, None], Compare=False, fsiz
         Yvmin, Yvmax = [None,None]
         Zvmin, Zvmax = [None,None]
 
+      
+    di = 1 #cm
     if slicer[0] is not None:
         cols = np.array(['z', 'y'])
-        mask = data['x'].isin(slicer)
-        title_slice = f'x = {slicer[0]:.3}'
+        # mask = data['x'].isin(slicer)
+        mask = data['x'].between(slicer[0]-di, slicer[0]+di)
+        actualValue = data['x'][mask]
+        title_slice = f'x = {actualValue.iloc[0]:.1f}'
+        checkSlice = len(actualValue.unique())
     elif slicer[1] is not None:
         cols = np.array(['x', 'z'])
-        mask = data['y'].isin(slicer)
-        title_slice = f'y = {slicer[1]:.3}'
+        # mask = data['y'].isin(slicer)
+        mask = data['y'].between(slicer[1]-di, slicer[1]+di)
+        actualValue = data['y'][mask]
+        title_slice = f'y = {actualValue.iloc[0]:.1f}'
+        checkSlice = len(actualValue.unique())
+        
     elif slicer[2] is not None:
         cols = np.array(['x', 'y'])
-        mask = data['z'].isin(slicer)
-        title_slice = f'z = {slicer[2]:.3}'
+        # mask = data['z'].isin(slicer)
+        # search = slicer[2] + 2
+        # print(-search,search)
+        mask = data['z'].between(slicer[2]-di, slicer[2]+di)
+        actualValue = data['z'][mask]
+        title_slice = f'z = {actualValue.iloc[0]:.1f}'
+        checkSlice = len(actualValue.unique())
+        
+        
     col_Name = np.array(['a', 'b'])
     
     if Compare:

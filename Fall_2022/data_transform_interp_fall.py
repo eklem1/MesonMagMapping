@@ -65,7 +65,6 @@ ctf.Limits(dfGreen_sub)
 
 df_BField_data_fixed_red, off_sets, rotation, off_setwithRotation, data_total = ctf.FixOffset(dfRed_sub, plot=False, alpha=.5, POSITION='red')
 df_BField_data_fixed_green, off_sets, rotation, off_setwithRotation, data_total = ctf.FixOffset(dfGreen_sub, plot=False, alpha=.5, POSITION='green')
-# df_BField_data_fixed_red, off_sets, rotation, off_setwithRotation, data_total = ctf.FixOffset(dfRed_sub, plot=False, alpha=.5, POSITION='stairs')
 
 print("Transformed data")
 #prints out the limits of the transformed data, in position and strength of the B field
