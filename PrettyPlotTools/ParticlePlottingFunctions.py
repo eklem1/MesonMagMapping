@@ -243,7 +243,7 @@ Plots all the data in 3D, with each component of the field plotted on a differen
 with a different colorbar.
 Data should be a pandas df
 '''
-def PlotComponents(data, Compare=False, fsize=(20,6), lims=None, title=None, Sample=None):
+def PlotComponents(data, Compare=False, fsize=(20,6), lims=None, title=None, Sample=None, elev_set=None, azim_set=None):
     
     fig = plt.figure(figsize=fsize)
     ax1 = fig.add_subplot(1, 3, 1, projection='3d')
@@ -303,9 +303,9 @@ def PlotComponents(data, Compare=False, fsize=(20,6), lims=None, title=None, Sam
         ax3.set_title("$B_z$")
         
     for a in axes:
-#         a.view_init(elev=30., azim=-5)
-        a.set_xlabel('x [cm]')
-        a.set_ylabel('y [cm]', labelpad=8)
+        a.view_init(elev=elev_set, azim=azim_set)
+        a.set_xlabel('x [cm]', labelpad=8)
+        a.set_ylabel('y [cm]', labelpad=12)
         a.set_zlabel('z [cm]', labelpad=8)
         
     fig.tight_layout(pad=1)#,rect=[0, 0, 1, 0.99])# plt.colorbar(sc, ax=ax4)
@@ -316,7 +316,7 @@ Plots a slice of the data in 3D, with each component of the field plotted on a
 different graph with a different colorbar.
 Which ever entry of slicer=[x,y,z] is what the slice will be done on. The value must be exact for now
 '''
-def PlotComponentsSlice(data, slicer=[None, None, None], Compare=False, fsize=(14,5), lims=None, title=None):
+def PlotComponentsSlice(data, slicer=[None, None, None], Compare=False, fsize=(14,5), lims=None, title=None, elev_set=30., azim_set=None):
     
     # ### Producing the plots
     # plt.rcParams['font.size'] = '12'
@@ -336,15 +336,15 @@ def PlotComponentsSlice(data, slicer=[None, None, None], Compare=False, fsize=(1
         Zvmin, Zvmax = [None,None]
 
     for axi in [ax1, ax2, ax3]:
-        axi.view_init(elev=40., azim=None) # you may need to adjsut it for better data visibility   
+        axi.view_init(elev=elev_set, azim=azim_set) # you may need to adjsut it for better data visibility   
 
-        axi.set_xticklabels(axi.get_xticks(),  rotation=50,
+        axi.set_xticklabels(axi.get_xticks(),  rotation=40,
                         verticalalignment='baseline',
-                        horizontalalignment='right')
-        axi.tick_params(pad=6) 
+                        horizontalalignment='center')
+        axi.tick_params(pad=13) 
         axi.set_yticklabels(axi.get_yticks(),  rotation=-25,
                         verticalalignment='baseline',
-                        horizontalalignment='left')    
+                        horizontalalignment='center')    
 
         axi.xaxis.set_major_formatter(FormatStrFormatter('%d'))
         axi.yaxis.set_major_formatter(FormatStrFormatter('%d'))
@@ -357,7 +357,7 @@ def PlotComponentsSlice(data, slicer=[None, None, None], Compare=False, fsize=(1
             axi.set_ylabel('$\mathsf{z}$ (cm)',  labelpad=10)
         elif slicer[2] is not None:
             axi.set_xlabel('$\mathsf{x}$ (cm)', rotation=7, labelpad=10)
-            axi.set_ylabel('$\mathsf{y}$ (cm)',  labelpad=10)
+            axi.set_ylabel('$\mathsf{y}$ (cm)',  labelpad=22)
             
     di = 1 #cm
     if slicer[0] is not None:
@@ -436,11 +436,9 @@ def PlotComponentsSlice(data, slicer=[None, None, None], Compare=False, fsize=(1
         # cbar_19 = fig.colorbar(Q_19, label='$B_z (\mu T)$', ax=ax3, pad=0.1)
         ax3.set_title("$B_z$")
     
-    ax1.set_zlabel('$\mathsf{B_x\,(\mu T)}$', rotation=180, labelpad=10)
-
-    ax2.set_zlabel('$\mathsf{B_y\,(\mu T)}$', rotation=180, labelpad=10)
-
-    ax3.set_zlabel('$\mathsf{B_z\,(\mu T)}$', rotation=180, labelpad=10)
+    ax1.set_zlabel('$\mathsf{B_x\,(\mu T)}$', rotation=180, labelpad=22)
+    ax2.set_zlabel('$\mathsf{B_y\,(\mu T)}$', rotation=180, labelpad=22)
+    ax3.set_zlabel('$\mathsf{B_z\,(\mu T)}$', rotation=180, labelpad=28)
 
     fig.suptitle(f'{title}, slice at {title_slice} cm')
     fig.tight_layout(pad=3,rect=[0, 0, 1, 0.99])# plt.colorbar(sc, ax=ax4)
@@ -474,29 +472,22 @@ def PlotComponentsSliceHeat(data, slicer=[None, None, None], Compare=False, fsiz
     di = 1 #cm
     if slicer[0] is not None:
         cols = np.array(['z', 'y'])
-        # mask = data['x'].isin(slicer)
         mask = data['x'].between(slicer[0]-di, slicer[0]+di)
         actualValue = data['x'][mask]
         title_slice = f'x = {actualValue.iloc[0]:.1f}'
         checkSlice = len(actualValue.unique())
     elif slicer[1] is not None:
         cols = np.array(['x', 'z'])
-        # mask = data['y'].isin(slicer)
         mask = data['y'].between(slicer[1]-di, slicer[1]+di)
         actualValue = data['y'][mask]
         title_slice = f'y = {actualValue.iloc[0]:.1f}'
         checkSlice = len(actualValue.unique())
-        
     elif slicer[2] is not None:
         cols = np.array(['x', 'y'])
-        # mask = data['z'].isin(slicer)
-        # search = slicer[2] + 2
-        # print(-search,search)
         mask = data['z'].between(slicer[2]-di, slicer[2]+di)
         actualValue = data['z'][mask]
         title_slice = f'z = {actualValue.iloc[0]:.1f}'
         checkSlice = len(actualValue.unique())
-        
         
     col_Name = np.array(['a', 'b'])
     
@@ -514,13 +505,19 @@ def PlotComponentsSliceHeat(data, slicer=[None, None, None], Compare=False, fsiz
     if Compare:
                
         df_B_x = plot_data.pivot_table( index='b', columns='a', values='dB_x')
-        q = sns.heatmap(df_B_x, ax=ax1, xticklabels=10, yticklabels=10, cmap=cm.PiYG, vmin=Xvmin, vmax=Xvmax)
+        # q = sns.heatmap(df_B_x, ax=ax1, xticklabels=10, yticklabels=10, cmap=cm.PiYG, vmin=Xvmin, vmax=Xvmax)
+        q = sns.heatmap(df_B_x, ax=ax1, xticklabels=10, yticklabels=10, cmap=cm.RdPu_r, vmin=Xvmin, vmax=Xvmax)
+        
         
         df_B_y = plot_data.pivot_table( index='b', columns='a', values='dB_y')
-        q = sns.heatmap(df_B_y, ax=ax2, xticklabels=10, yticklabels=10, cmap=cm.PRGn, vmin=Yvmin, vmax=Yvmax)
+        # q = sns.heatmap(df_B_y, ax=ax2, xticklabels=10, yticklabels=10, cmap=cm.PRGn, vmin=Yvmin, vmax=Yvmax)
+        q = sns.heatmap(df_B_y, ax=ax2, xticklabels=10, yticklabels=10, cmap=cm.PuBuGn, vmin=Yvmin, vmax=Yvmax)
+        
         
         df_B_z = plot_data.pivot_table( index='b', columns='a', values='dB_z')
-        q = sns.heatmap(df_B_z, ax=ax3, xticklabels=10, yticklabels=10, cmap=cm.PuOr, vmin=Zvmin, vmax=Zvmax)
+        # q = sns.heatmap(df_B_z, ax=ax3, xticklabels=10, yticklabels=10, cmap=cm.PuOr, vmin=Zvmin, vmax=Zvmax)
+        q = sns.heatmap(df_B_z, ax=ax3, xticklabels=10, yticklabels=10, cmap=cm.Purples, vmin=Zvmin, vmax=Zvmax)
+        
         
         ax1.set_title('$\mathsf{dB_x\, [\mu T]}$') 
         ax2.set_title('$\mathsf{dB_y\, [\mu T]}$')
@@ -553,10 +550,13 @@ def PlotComponentsSliceHeat(data, slicer=[None, None, None], Compare=False, fsiz
             item.set_text(fmt.format(float(item.get_text())))
             yticklabels += [item]
 
-        axi.set_xticklabels(xticklabels)
+        # axi.set_xticklabels(xticklabels)
         axi.set_yticklabels(yticklabels)
         axi.set_xlabel(f"{cols[0]} [cm]")
         axi.set_ylabel(f"{cols[1]} [cm]")
+        axi.set_xticklabels(xticklabels,  rotation=0)
+                # verticalalignment='baseline',
+                # horizontalalignment='right')
     
     
     fig.suptitle(f'{title}, slice at {title_slice} cm')
