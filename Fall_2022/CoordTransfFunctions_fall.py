@@ -27,10 +27,10 @@ def Limits(data):
     print(f"Bx: [{min(data['B_x'])}, {max(data['B_x'])}], By: [{min(data['B_y'])}, {max(data['B_y'])}], Bz: [{min(data['B_z'])}, {max(data['B_z'])}]")
 
 
-def MakeCube(axes, center=np.array([0,0,0]), sideLengths = np.array([3.5, 3.5, 3.5]) , c='black', angle=0):
+def MakeCube(axes, center=np.array([0,0,0]), sideLengths = np.array([3.5, 3.5, 3.5]) , c='black', angle=0, centerplot=True, label=None):
     """
-    Makes a cube to represent the MSR, with control over the center of the MSR, the sidelengths, 
-    the angle it is rotated by.
+    Makes an outline of a cube to represent the MSR, with control over the center of the MSR,  
+    the sidelengths, the angle it is rotated by.
     """
     halfs_minus = [center[0]-sideLengths[0]/2, center[1]-sideLengths[1]/2, center[2]-sideLengths[2]/2]
     halfs_plus = [center[0]+sideLengths[0]/2, center[1]+sideLengths[1]/2, center[2]+sideLengths[2]/2]
@@ -48,6 +48,7 @@ def MakeCube(axes, center=np.array([0,0,0]), sideLengths = np.array([3.5, 3.5, 3
     y_plus = halfs_plus[1]*np.ones(len(x_edge0))
     z_plus = halfs_plus[2]*np.ones(len(x_edge0))
     
+    #set up arrays for all the edges
     x_edge1, y_edge1 = rotate(np.array([x_edge0, y_min]).T, origin=center[:2], degrees=angle).T
     x_edge2, y_edge2 = rotate(np.array([x_min, y_edge0]).T, origin=center[:2], degrees=angle).T
     x_edge3, y_edge3 = rotate(np.array([x_min, y_min]).T, origin=center[:2], degrees=angle).T
@@ -64,9 +65,11 @@ def MakeCube(axes, center=np.array([0,0,0]), sideLengths = np.array([3.5, 3.5, 3
     x_edge11, y_edge11 = rotate(np.array([x_plus, y_edge0]).T, origin=center[:2], degrees=angle).T
     x_edge12, y_edge12 = rotate(np.array([x_plus, y_min]).T, origin=center[:2], degrees=angle).T
     
-    axes.scatter(center[0], center[1], center[2], color='purple', marker='*', s=45, label="MSR center")
+    if centerplot:
+        axes.scatter(center[0], center[1], center[2], color='purple', marker='*', s=45, label="MSR center")
 
-    axes.plot(x_edge1, y_edge1, z_min, c=c)
+    #plot all the edges
+    axes.plot(x_edge1, y_edge1, z_min, c=c, label=label)
     axes.plot(x_edge2, y_edge2, z_min, c=c)
     axes.plot(x_edge3, y_edge3, z_edge0, c=c)
 
@@ -176,11 +179,9 @@ def rotate3D(p, origin=(0, 0, 0), degrees=0):
     return A
 
 
-
 def rotateBData(df_data, origin, angle):
     data_pos = rotate3D(df_data[['x', 'y', 'z']].values, origin=origin, degrees=angle)
     
-    #gotta check this part makes sense
     data_B = rotate3D(df_data[['B_x', 'B_y', 'B_z']].values, origin=origin, degrees=angle)
     # print(f"Rotation of {angle} degrees")
     
