@@ -27,8 +27,13 @@ import CoordTransfFunctions_fall as ctf
 #if set to False, the origin will be the MSR, and no rotation transformation will be preformed
 SET_FINAL_ORIGIN_PENTRACK = False #not currently doing anything
 #if True, cuts data range to compare with new data
-CUT = True 
+CUT_2019 = True 
+CUT_guides = False #both cuts can't be true at the same time
+
 MergeTOGETHER = True
+
+shifted = False
+shiftAmount = 0 #cm
 
 
 ### Import data ###
@@ -79,6 +84,8 @@ df_BField_data_tryTogether = df_BField_data_fixed_red.append(df_BField_data_fixe
 
 # copied from plot_simple_cut_horizontal.py for interpolation
 
+
+
 df_BField_data_fixed = pd.DataFrame()
 
 if MergeTOGETHER: #interpolating the two sets together
@@ -88,12 +95,38 @@ else: # for adding together after interpolation
 
 for df_data in dataSets:
 
-    if CUT: #setting the limits of the interpolated data
-        x_min, x_max = -90.1, 123.60939 
-        y_min, y_max = -174.71133, -94.61279 
-        z_min, z_max = -150.75165, 9.257800000000003
-        print("Cut data")
-    else:
+    # a rough idea of the area that the guides pass through
+    guidesLims = np.array([[-31, 31], [-325, 0], [-34, 34]]) #cm
+
+    #these match our best guess at matching up with the 2019 data
+    # compare_2019_cut = np.array([[-90.1, 123.60939], [-174.71133, -94.61279 ], [-150.75165, 9.257800000000003]]) #cm
+    compare_2019_cut = np.array([[-90.1, 123.60939], [-174.71133, -94.61279 ], [-150.75165, 9.257800000000003]]) #cm
+
+
+    #setting the limits of the interpolated data, but still uses just the data's limits if those are smaller, 
+    #so as not to extrapolate data
+    if CUT_2019:
+        # x_min = max(min(df_data.x), compare_2019_cut[0][0])
+        # x_max = min(max(df_data.x), compare_2019_cut[0][1])
+        # y_min = max(min(df_data.y), compare_2019_cut[1][0])
+        # y_max = min(max(df_data.y), compare_2019_cut[1][1])
+        # z_min = max(min(df_data.z), compare_2019_cut[2][0])
+        # z_max = min(max(df_data.z), compare_2019_cut[2][1])
+        x_min, x_max = compare_2019_cut[0]
+        y_min, y_max = compare_2019_cut[1]
+        z_min, z_max = compare_2019_cut[2]
+
+        print("Cut data for comparing to 2019 data")
+
+    elif CUT_guides:
+        x_min = max(min(df_data.x), guidesLims[0][0])
+        x_max = min(max(df_data.x), guidesLims[0][1])
+        y_min = max(min(df_data.y), guidesLims[1][0])
+        y_max = min(max(df_data.y), guidesLims[1][1])
+        z_min = max(min(df_data.z), guidesLims[2][0])
+        z_max = min(max(df_data.z), guidesLims[2][1])
+        print("Cut data for guide area")
+    else: #just use limits of the data
         x_min, x_max= np.min(df_data.x), np.max(df_data.x)
         z_min, z_max= np.min(df_data.z), np.max(df_data.z)
         y_min, y_max= np.min(df_data.y), np.max(df_data.y)
@@ -101,6 +134,11 @@ for df_data in dataSets:
     NL = 50 # this defines the number of points for interpolation, default is 50
 
     x_dense, z_dense, y_dense = np.meshgrid(np.linspace(x_min, x_max, NL), np.linspace(z_min, z_max, NL), np.linspace(y_min,y_max, NL))
+
+    #could make a version with arange instead which might make the shifting possible
+    # di = 0.5
+    # x_dense, z_dense, y_dense = np.meshgrid(np.arange(x_min, x_max, di), np.arange(z_min, z_max, di), np.arange(y_min,y_max, di))
+
 
     Bx_rbf = interp.Rbf(df_data.x, df_data.z, df_data.y, df_data.B_x, function='cubic', smooth=0)  # default smooth=0 for interpolation
     Bx_dense = Bx_rbf(x_dense, z_dense, y_dense)  # not really a function, but a callable class instance
@@ -179,8 +217,14 @@ if MergeTOGETHER: #interpolating the two sets together
 else: # for adding together after interpolation
     file_save = file_save + "_seperate"
 
-if CUT:
-    file_save = file_save + "_CUT"
+if CUT_2019:
+    file_save = file_save + "_CUT2019"
+if CUT_guides:
+    file_save = file_save + "_CUTGuides"
+
+if shifted: #this is data for testing if our transformations are off
+    file_save = "shifted/"+ file_save + f"{shiftAmount}"
+
 
 file_save = file_save + f"_interp{NL}"
 

@@ -9,6 +9,7 @@ from matplotlib import cm
 from matplotlib.ticker import LinearLocator, FormatStrFormatter
 from matplotlib.ticker import FormatStrFormatter
 import seaborn as sns
+import matplotlib.colors as colors
 
 '''
 A function to graph the 3D position, in a 3D scatter plot as well as a view
@@ -256,10 +257,37 @@ def PlotComponents(data, Compare=False, fsize=(20,6), lims=None, title=None, Sam
         Yvmin, Yvmax = lims[1]
         Zvmin, Zvmax = lims[2]
     else:
-        Xvmin, Xvmax = [None,None]
-        Yvmin, Yvmax = [None,None]
-        Zvmin, Zvmax = [None,None]
+        if Compare:
+            Xvmin, Xvmax = [min(data['dB_x']),max(data['dB_x'])]
+            Yvmin, Yvmax = [min(data['dB_y']),max(data['dB_y'])]
+            Zvmin, Zvmax = [min(data['dB_z']),max(data['dB_z'])]
+        else:
 
+            if min(data['B_x']) > 0:
+                Xvmin, Xvmax = [None, max(data['B_x'])]
+            elif max(data['B_x']) < 0:
+                Xvmin, Xvmax = [min(data['B_x']), None]
+            else:          
+                Xvmin, Xvmax = [min(data['B_x']), max(data['B_x'])]
+                
+                        
+            if min(data['B_y']) > 0:
+                Yvmin, Yvmax = [None, max(data['B_y'])]
+            elif max(data['B_y']) < 0:
+                Yvmin, Yvmax = [min(data['B_y']), None]
+            else:          
+                Yvmin, Yvmax = [min(data['B_y']), max(data['B_y'])]              
+                
+            if min(data['B_z']) > 0:
+                Zvmin, Zvmax = [None, max(data['B_z'])]
+            elif max(data['B_z']) < 0:
+                Zvmin, Zvmax = [min(data['B_z']), None]
+            else:          
+                Zvmin, Zvmax = [min(data['B_z']), max(data['B_z'])]
+                
+            # Yvmin, Yvmax = [min(data['B_y']), max(data['B_y'])]
+            # Zvmin, Zvmax = [min(data['B_z']), max(data['B_z'])]
+            
     axes = [ax1, ax2, ax3]
     
     if Sample is not None:
@@ -268,39 +296,68 @@ def PlotComponents(data, Compare=False, fsize=(20,6), lims=None, title=None, Sam
     else:
         s_set=.5
     
+    #Setting the center (of the color - white) to the B=0 values
+    norm_x = colors.TwoSlopeNorm(vmin=Xvmin, vcenter=0, vmax=Xvmax)       
+    norm_y = colors.TwoSlopeNorm(vmin=Yvmin, vcenter=0, vmax=Yvmax)
+    norm_z = colors.TwoSlopeNorm(vmin=Zvmin, vcenter=0, vmax=Zvmax)
+    
     if Compare:
-        Q_19 = ax1.scatter(data['x'], data['y'], data['z'],c=data['dB_x'], s=s_set, 
-                           alpha=1, cmap=cm.PiYG, vmin=Xvmin, vmax=Xvmax)
-        cbar_19 = fig.colorbar(Q_19, label='$dB_x (\mu T)$', ax=ax1, pad=0.1)
+        Q_x = ax1.scatter(data['x'], data['y'], data['z'],c=data['dB_x'], s=s_set, 
+                           alpha=1, cmap=cm.PiYG, norm=norm_x)
+        cbar_x = fig.colorbar(Q_x, label='$dB_x (\mu T)$', ax=ax1, pad=0.1)
         ax1.set_title("$dB_x$")
-
-        Q_22 = ax2.scatter(data['x'], data['y'], data['z'],c=data['dB_y'], s=s_set, 
-                           alpha=1, cmap=cm.PRGn, vmin=Yvmin, vmax=Yvmax)
-        cbar_22 = fig.colorbar(Q_22, label='$dB_y (\mu T)$', ax=ax2, pad=0.1)
+        
+        Q_y = ax2.scatter(data['x'], data['y'], data['z'],c=data['dB_y'], s=s_set, 
+                           alpha=1, cmap=cm.PRGn, norm=norm_y)
+        cbar_y = fig.colorbar(Q_y, label='$dB_y (\mu T)$', ax=ax2, pad=0.1)
         ax2.set_title("$dB_y$")
-
-        Q_19 = ax3.scatter(data['x'], data['y'], data['z'],c=data['dB_z'], s=s_set,
-                           alpha=1, cmap=cm.PuOr, vmin=Zvmin, vmax=Zvmax)
-        cbar_19 = fig.colorbar(Q_19, label='$dB_z (\mu T)$', ax=ax3, pad=0.1)
+        
+        Q_z = ax3.scatter(data['x'], data['y'], data['z'],c=data['dB_z'], s=s_set,
+                           alpha=1, cmap=cm.PuOr_r, norm=norm_z)
+        cbar_z = fig.colorbar(Q_z, label='$dB_z (\mu T)$', ax=ax3, pad=0.1)
         ax3.set_title("$dB_z$")
 
     else:
 
-        Q_19 = ax1.scatter(data['x'], data['y'], data['z'],c=data['B_x'], s=s_set, 
-                           alpha=1, cmap=cm.PiYG)
+        #if 0 is really out of the range, don't use the normed colormap
+        if (max(data['B_x']) < -30 or max(data['B_x']) > 30) and (np.sign(max(data['B_x'])) == np.sign(min(data['B_x']))):
+            new_pink = truncate_colormap(cm.RdPu_r, 0, 0.8)
+            Q_x = ax1.scatter(data['x'], data['y'], data['z'],c=data['B_x'], s=s_set,
+                           alpha=1, cmap=new_pink)
+        else:
+            Q_x = ax1.scatter(data['x'], data['y'], data['z'],c=data['B_x'], s=s_set, 
+                           alpha=1, cmap=cm.PiYG, norm=norm_x)
         
-        cbar_19 = fig.colorbar(Q_19, label='$B_x (\mu T)$', ax=ax1, pad=0.1)
+        cbar_x = fig.colorbar(Q_x, label='$B_x (\mu T)$', ax=ax1, pad=0.1)
         ax1.set_title("$B_x$")
 
-        Q_22 = ax2.scatter(data['x'], data['y'], data['z'],c=data['B_y'], s=s_set,
-                           alpha=1, cmap=cm.PRGn)
-        cbar_22 = fig.colorbar(Q_22, label='$B_y (\mu T)$', ax=ax2, pad=0.1)
+        #if 0 is really out of the range
+        if (max(data['B_y']) < -30 or max(data['B_y']) > 30) and (np.sign(max(data['B_y'])) == np.sign(min(data['B_y']))):
+            new_purple = truncate_colormap(cm.Purples_r, 0, 0.8)
+            Q_y = ax2.scatter(data['x'], data['y'], data['z'],c=data['B_y'], s=s_set,
+                           alpha=1, cmap=new_purple)
+        else:
+            Q_y = ax2.scatter(data['x'], data['y'], data['z'],c=data['B_y'], s=s_set,
+                           alpha=1, cmap=cm.PRGn, norm=norm_y)
+        cbar_y = fig.colorbar(Q_y, label='$B_y (\mu T)$', ax=ax2, pad=0.1)
         ax2.set_title("$B_y$")
 
-        Q_19 = ax3.scatter(data['x'], data['y'], data['z'],c=data['B_z'], s=s_set,
-                           alpha=1, cmap=cm.PuOr)
-        cbar_19 = fig.colorbar(Q_19, label='$B_z (\mu T)$', ax=ax3, pad=0.1)
+        #if 0 is really out of the range
+        if (max(data['B_z']) < -30 or max(data['B_z']) > 30) and (np.sign(max(data['B_z'])) == np.sign(min(data['B_z']))):
+            new_purple = truncate_colormap(cm.Purples_r, 0, 0.8)
+            Q_z = ax3.scatter(data['x'], data['y'], data['z'],c=data['B_z'], s=s_set,
+                           alpha=1, cmap=new_purple)
+        else:
+            Q_z = ax3.scatter(data['x'], data['y'], data['z'],c=data['B_z'], s=s_set,
+                           alpha=1, cmap=cm.PuOr_r, norm=norm_z)
+        
+        cbar_z = fig.colorbar(Q_z, label='$B_z (\mu T)$', ax=ax3, pad=0.1)
         ax3.set_title("$B_z$")
+    
+    #reset scale of colorbars to linear so they don't have strange spacing
+    cbar_x.ax.set_yscale('linear')
+    cbar_y.ax.set_yscale('linear')
+    cbar_z.ax.set_yscale('linear')
         
     for a in axes:
         a.view_init(elev=elev_set, azim=azim_set)
@@ -310,6 +367,16 @@ def PlotComponents(data, Compare=False, fsize=(20,6), lims=None, title=None, Sam
         
     fig.tight_layout(pad=1)#,rect=[0, 0, 1, 0.99])# plt.colorbar(sc, ax=ax4)
     return
+
+'''
+from https://stackoverflow.com/questions/18926031/how-to-extract-a-subset-of-a-colormap-as-a-new-colormap-in-matplotlib
+cuts part of a colormap 
+'''
+def truncate_colormap(cmap, minval=0.0, maxval=1.0, n=100):
+    new_cmap = colors.LinearSegmentedColormap.from_list(
+        'trunc({n},{a:.2f},{b:.2f})'.format(n=cmap.name, a=minval, b=maxval),
+        cmap(np.linspace(minval, maxval, n)))
+    return new_cmap
         
 ''''
 Plots a slice of the data in 3D, with each component of the field plotted on a 
@@ -494,45 +561,57 @@ def PlotComponentsSliceHeat(data, slicer=[None, None, None], Compare=False, fsiz
     if Compare:
         cols = np.append(cols, ['dB_x', 'dB_y', 'dB_z'])
         col_Name = np.append(col_Name, ['dB_x', 'dB_y', 'dB_z'])
+        values_arr = ['dB_x', 'dB_y', 'dB_z']
+        
     else:
         cols = np.append(cols, ['B_x', 'B_y', 'B_z'])
         col_Name = np.append(col_Name, ['B_x', 'B_y', 'B_z'])
+        values_arr = ['B_x', 'B_y', 'B_z']
+        
         
     plot_data = pd.DataFrame(data=data[cols]).loc[mask]
       
     plot_data.columns = col_Name
+    
+    df_B_x = plot_data.pivot_table( index='b', columns='a', values=values_arr[0])
+    if len(plot_data[plot_data[values_arr[0]]>0]) > 0 and len(plot_data[plot_data[values_arr[0]]<0]) > 0 :
+        q = sns.heatmap(df_B_x, ax=ax1, xticklabels=10, yticklabels=10, cmap=cm.PiYG, linewidths=0, square=True)
+    elif len(plot_data[plot_data[values_arr[0]]>0]) > 0:
+        new_green = truncate_colormap(cm.Greens, 0, 0.8)
+        q = sns.heatmap(df_B_x, ax=ax1, xticklabels=10, yticklabels=10, cmap=new_green, linewidths=0, square=True)
+    else:
+        new_pink = truncate_colormap(cm.RdPu_r, 0, 0.8)
+        q = sns.heatmap(df_B_x, ax=ax1, xticklabels=10, yticklabels=10, cmap=new_pink, linewidths=0, square=True)
 
+    df_B_y = plot_data.pivot_table( index='b', columns='a', values=values_arr[1])
+    if len(plot_data[plot_data[values_arr[1]]>0]) > 0 and len(plot_data[plot_data[values_arr[1]]<0]) > 0 :
+        q = sns.heatmap(df_B_y, ax=ax2, xticklabels=10, yticklabels=10, cmap=cm.PRGn, linewidths=0, square=True)
+    elif len(plot_data[plot_data[values_arr[1]]>0]) > 0:
+        new_green = truncate_colormap(cm.Greens, 0, 0.8)
+        q = sns.heatmap(df_B_y, ax=ax2, xticklabels=10, yticklabels=10, cmap=new_green, linewidths=0, square=True)
+    else:
+        new_purple = truncate_colormap(cm.BuPu_r, 0, 0.7)
+        q = sns.heatmap(df_B_y, ax=ax2, xticklabels=10, yticklabels=10, cmap=new_purple, linewidths=0, square=True)
+
+    df_B_z = plot_data.pivot_table( index='b', columns='a', values=values_arr[2])
+
+    if len(plot_data[plot_data[values_arr[2]]>0]) > 0 and len(plot_data[plot_data[values_arr[2]]<0]) > 0 :
+        q = sns.heatmap(df_B_z, ax=ax3, xticklabels=10, yticklabels=10, cmap=cm.PuOr_r, linewidths=0, square=True)
+    elif len(plot_data[plot_data[values_arr[2]]>0]) > 0:
+        new_orange = truncate_colormap(cm.Oranges_r, 0, 0.8)
+        q = sns.heatmap(df_B_z, ax=ax3, xticklabels=10, yticklabels=10, cmap=new_orange, linewidths=0, square=True)
+    else:
+        new_purple = truncate_colormap(cm.Purples_r, 0, 0.8)
+        q = sns.heatmap(df_B_z, ax=ax3, xticklabels=10, yticklabels=10, cmap=new_purple, linewidths=0, square=True)
+        
+        
     if Compare:
-               
-        df_B_x = plot_data.pivot_table( index='b', columns='a', values='dB_x')
-        # q = sns.heatmap(df_B_x, ax=ax1, xticklabels=10, yticklabels=10, cmap=cm.PiYG, vmin=Xvmin, vmax=Xvmax)
-        q = sns.heatmap(df_B_x, ax=ax1, xticklabels=10, yticklabels=10, cmap=cm.RdPu_r, vmin=Xvmin, vmax=Xvmax)
-        
-        
-        df_B_y = plot_data.pivot_table( index='b', columns='a', values='dB_y')
-        # q = sns.heatmap(df_B_y, ax=ax2, xticklabels=10, yticklabels=10, cmap=cm.PRGn, vmin=Yvmin, vmax=Yvmax)
-        q = sns.heatmap(df_B_y, ax=ax2, xticklabels=10, yticklabels=10, cmap=cm.PuBuGn, vmin=Yvmin, vmax=Yvmax)
-        
-        
-        df_B_z = plot_data.pivot_table( index='b', columns='a', values='dB_z')
-        # q = sns.heatmap(df_B_z, ax=ax3, xticklabels=10, yticklabels=10, cmap=cm.PuOr, vmin=Zvmin, vmax=Zvmax)
-        q = sns.heatmap(df_B_z, ax=ax3, xticklabels=10, yticklabels=10, cmap=cm.Purples, vmin=Zvmin, vmax=Zvmax)
-        
-        
+
         ax1.set_title('$\mathsf{dB_x\, [\mu T]}$') 
         ax2.set_title('$\mathsf{dB_y\, [\mu T]}$')
         ax3.set_title('$\mathsf{dB_z\, [\mu T]}$')
 
     else:
-        df_B_x = plot_data.pivot_table( index='b', columns='a', values='B_x')
-        q = sns.heatmap(df_B_x, ax=ax1, xticklabels=10, yticklabels=10, cmap=cm.viridis, linewidths=0, square=True)
-        
-        df_B_y = plot_data.pivot_table( index='b', columns='a', values='B_y')
-        q = sns.heatmap(df_B_y, ax=ax2, xticklabels=10, yticklabels=10, cmap=cm.inferno, linewidths=0, square=True)
-        
-        df_B_z = plot_data.pivot_table( index='b', columns='a', values='B_z')
-        q = sns.heatmap(df_B_z, ax=ax3, xticklabels=10, yticklabels=10, cmap=cm.cividis, linewidths=0, square=True)
-        
         ax1.set_title('$\mathsf{B_x\, [\mu T]}$') 
         ax2.set_title('$\mathsf{B_y\, [\mu T]}$')
         ax3.set_title('$\mathsf{B_z\, [\mu T]}$')
@@ -561,3 +640,4 @@ def PlotComponentsSliceHeat(data, slicer=[None, None, None], Compare=False, fsiz
     
     fig.suptitle(f'{title}, slice at {title_slice} cm')
     fig.tight_layout(pad=1,rect=[0, 0, 1, 0.99])# plt.colorbar(sc, ax=ax4)
+
