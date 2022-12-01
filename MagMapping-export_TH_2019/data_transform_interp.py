@@ -31,7 +31,7 @@ import CoordTransfFunctions as ctf
 #if set to False, the origin will be the MSR, and no rotation transformation will be preformed
 SET_FINAL_ORIGIN_PENTRACK = False
 #if True, cuts data range to compare with new data
-CUT = True 
+CUT = False 
 
 
 # This data is in [cm] and [0.1 mT = 1e-4 T = 1 G]
@@ -269,7 +269,7 @@ if SET_FINAL_ORIGIN_PENTRACK:
         + f'{rotation} degrees\n' + f'Resulting total origin shift: {off_setwithRotation} cm\n'\
         + f'Comments: {comment}\n' + '\t'.join(BField_Names)
 
-    file_save = f"map_referencedPENTrack_interp{NL}"
+    file_save = f"map_referencedPENTrack"
     if CutCorners:
         file_save = file_save + "_cutCorners"
         comment = comment + " The corners of this grid outside the original data edges have also been set to 0."
@@ -285,7 +285,7 @@ else:
         + f'{rotation} degrees\n' + f'Resulting total origin shift: {off_setwithRotation} cm\n'\
         + f'Comments: {comment}\n' + '\t'.join(BField_Names)
 
-    file_save = f"map_referencedMSR_interp"
+    file_save = f"map_referencedMSR"
 
     if CUT:
         file_save = file_save + "_CUT"
@@ -294,7 +294,8 @@ else:
         file_save = file_save + "_cutCorners"
         comment = comment + " The corners of this grid outside the original data edges have also been set to 0."
 
-    file_save = file_save + f"_interp{NL}"
+
+file_save = file_save + f"_interp{NL}"
 
 print(f"Saving file: ./data_export/{file_save}.txt")
 
