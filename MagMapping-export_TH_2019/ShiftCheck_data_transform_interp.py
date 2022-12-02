@@ -119,8 +119,13 @@ df_BField_data_fixed['B_z'] = df_BField_data_fixed['B_z'] * 100
 #this is where we will do a bunch of shifts of the data to comapare which one works the best
 # [{x_shift},{y_shift}]
 
-x_shift_arr = np.linspace(-30, 30, 6) #cm
-y_shift_arr = np.linspace(-30, 30, 6) #cm
+# x_shift_arr = np.linspace(-120, 120, 8) #cm
+# y_shift_arr = np.linspace(-120, 120, 8) #cm
+
+x_shift_arr = np.linspace(-40, 30, 5) #cm
+y_shift_arr = np.linspace(-30, 40, 5) #cm
+
+saveLimits = []
 
 print(x_shift_arr, y_shift_arr)
 
@@ -136,9 +141,34 @@ for x_shift in x_shift_arr:
 
         # copied from plot_simple_cut_horizontal.py for interpolation
         if CUT: #setting the limits of the interpolated data
-            x_min, x_max = -90.1, 123.60939 
-            y_min, y_max = -174.71133, -94.61279 
-            z_min, z_max = -150.75165, 9.257800000000003
+            # x_min, x_max = -90.1, 123.60939 
+            # y_min, y_max = -174.71133, -94.61279 
+            # z_min, z_max = -150.75165, 9.257800000000003
+
+            # print("2019 limits:")
+            mins_19 = np.min(df_data_shift_copy, axis=0).values
+            max_19 = np.max(df_data_shift_copy,axis=0).values
+
+            print("2022 limits:")
+            mins_22 = np.array([-118.9572  ,   -174.71133  ,  -150.75165  ,  -105.02902915, -108.11342154, -276.1794207 ])
+            max_22 = np.array([ 123.60939  ,   -94.61279  ,     9.2578  ,      5.14 ,       -28.79225841, -160.99588885])
+
+            whichMin = mins_19 > mins_22
+            whichMax = max_19 < max_22
+
+            minsAll = np.concatenate(( mins_19[whichMin], mins_22[~whichMin]))
+            maxsAll = np.concatenate(( max_19[whichMax], max_22[~whichMax]))
+
+            print(  f"x_min, x_max = {minsAll[0]}, {maxsAll[0]} \n" +
+                f"y_min, y_max = {minsAll[1]}, {maxsAll[1]} \n"+
+                f"z_min, z_max = {minsAll[2]}, {maxsAll[2]}")
+
+            x_min, x_max = minsAll[0], maxsAll[0]
+            y_min, y_max = minsAll[1], maxsAll[1]
+            z_min, z_max = minsAll[2], maxsAll[2]
+
+            saveLimits.append(minsAll)
+
             print("Cut data")
         else:
             x_min, x_max= np.min(df_data_shift_copy.x), np.max(df_data_shift_copy.x)
@@ -222,4 +252,11 @@ for x_shift in x_shift_arr:
 
         print(f"Saving file: ./data_export/shifts/{file_save}.txt")
 
-        np.savetxt(f'./data_export/shifts/{file_save}.txt', BField_data_fixed,  delimiter='\t', newline='\n', header=headerText)
+        np.savetxt(f'./data_export/shifts2/{file_save}.txt', BField_data_fixed,  delimiter='\t', newline='\n', header=headerText)
+
+
+# print(saveLimits)
+
+
+np.savetxt(f"./data_export/Limits_try1.csv", saveLimits, delimiter=',', newline='\n',
+    header=f'Limits for x,y shifts of\nx:{x_shift_arr}, y:{y_shift_arr} cm', footer='', comments='# ')

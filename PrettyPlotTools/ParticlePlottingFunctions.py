@@ -243,8 +243,10 @@ def graphSTL(stlFile, axes, edgecolor="black", facecolor=None, linewidth=0.1, a=
 Plots all the data in 3D, with each component of the field plotted on a different graph
 with a different colorbar.
 Data should be a pandas df
+
+limScale will control how far away to zero your values can be before the white being set to 0 is ignored
 '''
-def PlotComponents(data, Compare=False, fsize=(20,6), lims=None, title=None, Sample=None, elev_set=None, azim_set=None):
+def PlotComponents(data, Compare=False, fsize=(20,6), lims=None, title=None, Sample=None, elev_set=None, azim_set=None, limScale=1):
     
     fig = plt.figure(figsize=fsize)
     ax1 = fig.add_subplot(1, 3, 1, projection='3d')
@@ -302,17 +304,36 @@ def PlotComponents(data, Compare=False, fsize=(20,6), lims=None, title=None, Sam
     norm_z = colors.TwoSlopeNorm(vmin=Zvmin, vcenter=0, vmax=Zvmax)
     
     if Compare:
-        Q_x = ax1.scatter(data['x'], data['y'], data['z'],c=data['dB_x'], s=s_set, 
+        #if 0 is really out of the range, don't use the normed colormap
+        if (max(data['dB_x']) < -30*limScale or max(data['dB_x']) > 30*limScale) and (np.sign(max(data['dB_x'])) == np.sign(min(data['dB_x']))):
+            new_pink = truncate_colormap(cm.RdPu_r, 0, 0.8)
+            Q_x = ax1.scatter(data['x'], data['y'], data['z'],c=data['dB_x'], s=s_set, 
+                           alpha=1, cmap=new_pink)
+        else:
+            Q_x = ax1.scatter(data['x'], data['y'], data['z'],c=data['dB_x'], s=s_set, 
                            alpha=1, cmap=cm.PiYG, norm=norm_x)
         cbar_x = fig.colorbar(Q_x, label='$dB_x (\mu T)$', ax=ax1, pad=0.1)
         ax1.set_title("$dB_x$")
         
-        Q_y = ax2.scatter(data['x'], data['y'], data['z'],c=data['dB_y'], s=s_set, 
+                #if 0 is really out of the range
+        if (max(data['dB_y']) < -30*limScale or max(data['dB_y']) > 30*limScale) and (np.sign(max(data['dB_y'])) == np.sign(min(data['dB_y']))):
+            new_purple = truncate_colormap(cm.Purples_r, 0, 0.8)
+            Q_y = ax2.scatter(data['x'], data['y'], data['z'],c=data['dB_y'], s=s_set, 
+                           alpha=1, cmap=new_purple)
+        else:
+            Q_y = ax2.scatter(data['x'], data['y'], data['z'],c=data['dB_y'], s=s_set, 
                            alpha=1, cmap=cm.PRGn, norm=norm_y)
         cbar_y = fig.colorbar(Q_y, label='$dB_y (\mu T)$', ax=ax2, pad=0.1)
         ax2.set_title("$dB_y$")
         
-        Q_z = ax3.scatter(data['x'], data['y'], data['z'],c=data['dB_z'], s=s_set,
+        print(max(data['dB_z']), min(data['dB_z']))
+        
+        if (max(data['dB_z']) < -30*limScale or max(data['dB_z']) > 30*limScale) and (np.sign(max(data['dB_z'])) == np.sign(min(data['dB_z']))):
+            new_purple = truncate_colormap(cm.Purples_r, 0, 0.8)
+            Q_z = ax3.scatter(data['x'], data['y'], data['z'],c=data['dB_z'], s=s_set,
+               alpha=1, cmap=new_purple)
+        else:
+            Q_z = ax3.scatter(data['x'], data['y'], data['z'],c=data['dB_z'], s=s_set,
                            alpha=1, cmap=cm.PuOr_r, norm=norm_z)
         cbar_z = fig.colorbar(Q_z, label='$dB_z (\mu T)$', ax=ax3, pad=0.1)
         ax3.set_title("$dB_z$")
